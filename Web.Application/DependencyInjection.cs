@@ -26,7 +26,7 @@ namespace Identity.Application
             const int MaxRequestBodySize = 100000000;
             string _myAllowSpecificOrigins = ApplicationConstants.MyAllowSpecificOrigins;
             // Adds system services
-            services.AddHttpContextAccessor();
+            services.AddHttpClient();
 
             // Dependency injection support for Mapster
             // https://github.com/MapsterMapper/Mapster/wiki/Dependency-Injection
@@ -45,6 +45,9 @@ namespace Identity.Application
                 options.Providers.Add<BrotliCompressionProvider>();
                 options.Providers.Add<GzipCompressionProvider>();
             });
+
+            // Memory cache.
+            services.AddMemoryCache();
 
             // CORS
             services.AddCors(options =>

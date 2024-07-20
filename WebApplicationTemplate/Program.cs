@@ -1,7 +1,9 @@
 using Identity.Application;
+using Microsoft.EntityFrameworkCore;
 using Web.Api.Middlewares.Authentication;
 using Web.Domain.Constants;
 using Web.Infrastructure;
+using Web.Infrastructure.Database;
 
 namespace Web.Api
 {
@@ -34,6 +36,12 @@ namespace Web.Api
             builder.Services.AddInfrastructureServices(builder.Configuration);
             builder.Services.AddApplicationServices(builder.Configuration);
             builder.Services.AddJWTServices(builder.Configuration);
+
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            {
+                var assemblyName = typeof(Program).Assembly.GetName().Name;
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly(assemblyName));
+            });
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
