@@ -11,11 +11,9 @@ namespace Web.Api
     {
         protected static void Main(string[] args)
         {
-            var _environmentName = ApplicationConstants.EnvironmentName;
-
             var builder = WebApplication.CreateBuilder(args);
 
-            _environmentName = Environment.GetEnvironmentVariable(ApplicationConstants.AspNetCoreEnvironment) ?? ApplicationConstants.DefaultEnvironmentName;
+            string _environmentName = Environment.GetEnvironmentVariable(ApplicationConstants.AspNetCoreEnvironment) ?? ApplicationConstants.DefaultEnvironmentName;
 
             // Create a logger
             using var loggerFactory = LoggerFactory.Create(builder =>
@@ -23,23 +21,21 @@ namespace Web.Api
                 builder.AddConsole();
             });
 
-            var logger = loggerFactory.CreateLogger<Program>();
+            ILogger<Program> logger = loggerFactory.CreateLogger<Program>();
 
-            logger.LogInformation($"Environment name: {_environmentName}");
+            logger.LogInformation("Environment name: {_environmentName}", _environmentName);
 
-            builder.Configuration
-                .SetBasePath(builder.Environment.ContentRootPath)
-                .AddEnvironmentVariables();
+            // Adds environment variables from json
+            builder.Configuration.SetBasePath(builder.Environment.ContentRootPath).AddEnvironmentVariables();
 
             // Add services to the container.
-
             builder.Services.AddInfrastructureServices(builder.Configuration);
             builder.Services.AddApplicationServices(builder.Configuration);
             builder.Services.AddJWTServices(builder.Configuration);
 
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
             {
-                var assemblyName = typeof(Program).Assembly.GetName().Name;
+                string? assemblyName = typeof(Program).Assembly.GetName().Name;
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly(assemblyName));
             });
 

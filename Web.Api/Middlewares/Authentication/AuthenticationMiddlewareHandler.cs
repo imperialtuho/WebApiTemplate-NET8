@@ -9,7 +9,6 @@ using System.Security.Principal;
 using System.Text;
 using System.Text.Encodings.Web;
 using Web.Application.Configurations.Settings;
-using Web.Domain.Exceptions;
 using Web.Domain.Helpers;
 
 namespace Web.Api.Middlewares.Authentication
@@ -123,7 +122,7 @@ namespace Web.Api.Middlewares.Authentication
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     RequireExpirationTime = true,
-                    ValidateIssuerSigningKey = true,
+                    ValidateIssuerSigningKey = true
                 };
 
                 JwtSettings jwtSettings = await GetJwtSettingsAsync() ?? throw new NotFoundException($"{nameof(JwtSettings)} is not found or not setup!");
@@ -178,7 +177,14 @@ namespace Web.Api.Middlewares.Authentication
 
                 using HttpClient client = httpClientFactory.CreateClient();
 
-                var content = new StringContent(AesEncryptionHelper.Encrypt(appSettings.Password, appSettings.Password), Encoding.UTF8, "application/json");
+                string password = AesEncryptionHelper.Encrypt(appSettings.Password, appSettings.Password);
+
+                var passwordDto = new PasswordDto()
+                {
+                    Password = password
+                };
+
+                var content = new StringContent(JsonConvert.SerializeObject(passwordDto), Encoding.UTF8, "application/json");
 
                 HttpResponseMessage response = await client.PostAsync($"{IdentityUrl}settings/jwt", content);
 

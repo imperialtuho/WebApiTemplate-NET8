@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Web.Api.Controllers
@@ -9,6 +10,7 @@ namespace Web.Api.Controllers
     /// <param name="blogService">The blogService.</param>
     [ApiController]
     [Route("[controller]")]
+    [Authorize]
     public class BlogsController(ILogger<BlogsController> logger, IBlogService blogService) : ControllerBase
     {
         /// <summary>
@@ -16,8 +18,9 @@ namespace Web.Api.Controllers
         /// </summary>
         /// <param name="id">The id.</param>
         /// <returns>ActionResult{BlogDto}.</returns>
-        /// <exception cref="UnhandledException"></exception>
+        /// <exception cref="UnhandledException">The UnhandledException.</exception>
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<BlogDto>> GetByIdAsync(string id)
         {
             try
