@@ -1,19 +1,17 @@
-﻿using Mapster;
+﻿using Web.Application.Configurations.MappingProfiles.Mapster;
+using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
-using System.Security.Principal;
-using Web.Application.Configurations.MappingProfiles.Mapster;
 using Web.Application.Configurations.Settings;
 using Web.Application.Interfaces.Services;
 using Web.Application.Services;
 using Web.Domain.Constants;
 
-namespace Identity.Application
+namespace Web.Application
 {
     public static class DependencyInjection
     {
@@ -22,6 +20,7 @@ namespace Identity.Application
             // Adds setting json
             services.Configure<JwtSettings>(configuration.GetSection(nameof(JwtSettings)));
             services.Configure<ApplicationSettings>(configuration.GetSection(nameof(ApplicationSettings)));
+            services.Configure<IdentityApiSettings>(configuration.GetSection(nameof(IdentityApiSettings)));
 
             const int MaxRequestBodySize = 100000000;
             string _myAllowSpecificOrigins = ApplicationConstants.MyAllowSpecificOrigins;
@@ -30,15 +29,12 @@ namespace Identity.Application
 
             // Dependency injection support for Mapster
             // https://github.com/MapsterMapper/Mapster/wiki/Dependency-Injection
-            var config = new TypeAdapterConfig();
+            var config = TypeAdapterConfig.GlobalSettings;
             config.Apply(new MappingRegistration());
             config.Scan(Assembly.GetExecutingAssembly());
             services.AddSingleton(config);
             services.AddScoped<IMapper, ServiceMapper>();
-
-            services.AddHttpContextAccessor();
-            services.AddTransient<IPrincipal>(provider => provider.GetService<IHttpContextAccessor>()!.HttpContext!.User);
-
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddResponseCompression(options =>
             {
                 options.EnableForHttps = true;
@@ -65,8 +61,7 @@ namespace Identity.Application
             });
 
             // Adds application services
-
-            services.AddScoped<IBlogService, BlogService>();
+            services.AddScoped<IExampleService, ExampleService>();
 
             return services;
         }

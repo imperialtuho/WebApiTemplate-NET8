@@ -1,6 +1,9 @@
-using Identity.Application;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Web.Api.Middlewares.Authentication;
+using Web.Api.Middlewares.ExceptionHandler;
+using Web.Application;
+using Web.Application.Configurations.Settings;
 using Web.Domain.Constants;
 using Web.Infrastructure;
 using Web.Infrastructure.Database;
@@ -9,6 +12,9 @@ namespace Web.Api
 {
     public class Program
     {
+        protected Program()
+        { }
+
         protected static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
@@ -31,7 +37,7 @@ namespace Web.Api
             // Add services to the container.
             builder.Services.AddInfrastructureServices(builder.Configuration);
             builder.Services.AddApplicationServices(builder.Configuration);
-            builder.Services.AddJWTServices(builder.Configuration);
+            builder.Services.AddJwtServices(builder.Configuration);
 
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
             {
@@ -46,11 +52,26 @@ namespace Web.Api
 
             var app = builder.Build();
 
+            var appSettings = app.Services.GetRequiredService<IOptions<ApplicationSettings>>().Value;
+
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
+            if (!appSettings.IsProductionMode)
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
+            }
+
+            if (!ExceptionHandlerMiddleware.IsProductionEnvironment(builder.Environment, _environmentName))
+            {
+                app.UseDeveloperExceptionPage();
+                app.UseExceptionHandler(
+                    ExceptionHandlerMiddleware.CustomExceptionHandlerMiddleware(true, logger));
+            }
+            else
+            {
+                app.UseExceptionHandler(
+                    ExceptionHandlerMiddleware.CustomExceptionHandlerMiddleware(false, logger));
+                app.UseHsts();
             }
 
             app.UseHttpsRedirection();

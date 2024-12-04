@@ -4,7 +4,7 @@ namespace Web.Domain.Common
 {
     public class PaginatedResponse<TResponse>
     {
-        public IReadOnlyCollection<TResponse> Items { get; }
+        public IReadOnlyCollection<TResponse> Data { get; }
         public int PageNumber { get; }
         public int TotalPages { get; }
         public int TotalCount { get; }
@@ -14,7 +14,7 @@ namespace Web.Domain.Common
             PageNumber = pageNumber;
             TotalPages = (int)Math.Ceiling(count / (double)pageSize);
             TotalCount = count;
-            Items = items;
+            Data = items;
         }
 
         public bool HasPreviousPage => PageNumber > 1;

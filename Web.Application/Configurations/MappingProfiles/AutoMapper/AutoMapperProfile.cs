@@ -1,6 +1,4 @@
 ﻿using AutoMapper;
-using Web.Application.Dtos;
-using Web.Domain.Entities;
 
 namespace Web.Application.Configurations.MappingProfiles.AutoMapper
 {
@@ -8,7 +6,6 @@ namespace Web.Application.Configurations.MappingProfiles.AutoMapper
     {
         public AutoMapperProfile()
         {
-            CreateMap<BlogDto, Blog>().ReverseMap();
         }
     }
 }

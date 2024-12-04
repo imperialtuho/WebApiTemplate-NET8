@@ -86,7 +86,7 @@ namespace Web.Infrastructure.Configurations
                     return (_configuration.GetConnectionString("DefaultConnection"), ConnectionStringType.DefaultConnection);
 
                 case ConnectionStringType.SqlServerConnection:
-                    return (_configuration.GetConnectionString("SqlServerConnection"), ConnectionStringType.DefaultConnection);
+                    return (_configuration.GetConnectionString("SqlServerConnection"), ConnectionStringType.SqlServerConnection);
 
                 case ConnectionStringType.PostgresqlConnection:
                     return (_configuration.GetConnectionString("PostgresqlConnection"), ConnectionStringType.PostgresqlConnection);

@@ -2,9 +2,9 @@
 
 namespace Web.Api.Middlewares.Authentication
 {
-    public static class SetupJWTServices
+    public static class SetupJwtServices
     {
-        public static void AddJWTServices(this IServiceCollection services, IConfiguration configuration)
+        public static void AddJwtServices(this IServiceCollection services, IConfiguration configuration)
         {
             AuthenticationMiddlewareHandler.IdentityUrl = configuration.GetValue<string>($"{nameof(JwtSettings)}:IdentityUrl");
 

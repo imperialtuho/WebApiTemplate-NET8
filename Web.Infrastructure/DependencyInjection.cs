@@ -1,8 +1,12 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Security.Principal;
 using Web.Application.Configurations.Database;
+using Web.Application.Interfaces.ExternalProviders;
 using Web.Application.Interfaces.Repositories;
 using Web.Infrastructure.Configurations;
+using Web.Infrastructure.Repositories.ExternalProviders.IdentityApi;
 using Web.Infrastructure.Repositories.Providers.Blogs;
 
 namespace Web.Infrastructure
@@ -18,9 +22,20 @@ namespace Web.Infrastructure
         /// <exception cref="InvalidOperationException"></exception>
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
         {
-            // Adds Repositories.
+            services.AddOptions();
+
+            services.AddHttpContextAccessor();
+            services.AddTransient<IPrincipal>(provider => provider.GetService<IHttpContextAccessor>()!.HttpContext!.User);
+            services.AddHttpClient();
+
+            // Adds API client services
+            services.AddTransient<IIdentityApi, IdentityApi>();
+
+            // Adds SqlConnectionFactory
             services.AddScoped<ISqlConnectionFactory, SqlConnectionFactory>();
-            services.AddScoped<IBlogRepository, BlogRepository>();
+
+            // Adds Repositories.
+            services.AddScoped<IExampleRepository, ExampleRepository>();
 
             return services;
         }
