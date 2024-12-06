@@ -3,9 +3,8 @@
     /// <summary>
     /// Base controller.
     /// </summary>
-    [ApiController]
-    [Route("api/[controller]")]
     [Authorize]
+    [ApiController]
     public class BaseController : ControllerBase
     {
         /// <summary>

@@ -1,5 +1,8 @@
+using Identity.Application.Configurations.Settings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.OpenApi.Models;
+using Web.Api.Extensions;
 using Web.Api.Middlewares.Authentication;
 using Web.Api.Middlewares.ExceptionHandler;
 using Web.Application;
@@ -12,14 +15,18 @@ namespace Web.Api
 {
     public class Program
     {
+        private static SwaggerSettings Swagger;
+
         protected Program()
         { }
 
-        protected static void Main(string[] args)
+        protected static async Task Main(string[] args)
         {
+            var environmentName = ApplicationConstants.EnvironmentName;
+
             var builder = WebApplication.CreateBuilder(args);
 
-            string _environmentName = Environment.GetEnvironmentVariable(ApplicationConstants.AspNetCoreEnvironment) ?? ApplicationConstants.DefaultEnvironmentName;
+            environmentName = Environment.GetEnvironmentVariable(ApplicationConstants.AspNetCoreEnvironment) ?? ApplicationConstants.DefaultEnvironmentName;
 
             // Create a logger
             using var loggerFactory = LoggerFactory.Create(builder =>
@@ -27,60 +34,133 @@ namespace Web.Api
                 builder.AddConsole();
             });
 
-            ILogger<Program> logger = loggerFactory.CreateLogger<Program>();
+            loggerFactory.CreateLogger<Program>().LogInformation("Environment name: {EnvironmentName}", environmentName);
 
-            logger.LogInformation("Environment name: {_environmentName}", _environmentName);
+            builder.Configuration
+                .SetBasePath(builder.Environment.ContentRootPath)
+                .AddEnvironmentVariables()
+                .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true);
 
-            // Adds environment variables from json
-            builder.Configuration.SetBasePath(builder.Environment.ContentRootPath).AddEnvironmentVariables();
+            Swagger = builder.Configuration.GetSection(nameof(SwaggerSettings)).Get<SwaggerSettings>()
+                    ?? throw new ArgumentException($"{nameof(SwaggerSettings)} is missing in appsettings!");
 
-            // Add services to the container.
-            builder.Services.AddInfrastructureServices(builder.Configuration);
-            builder.Services.AddApplicationServices(builder.Configuration);
-            builder.Services.AddJwtServices(builder.Configuration);
-
-            builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            {
-                string? assemblyName = typeof(Program).Assembly.GetName().Name;
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly(assemblyName));
-            });
-
-            builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            // Register services
+            ConfigureServices(builder.Services, builder.Configuration);
 
             var app = builder.Build();
 
+            // Configure middleware and request pipeline
+            ConfigureMiddleware(app, environmentName);
+
+            await app.RunAsync();
+        }
+
+        private static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
+        {
+            // Register custom services
+            services.AddInfrastructureServices(configuration);
+            services.AddApplicationServices(configuration);
+            services.AddApiServices(configuration);
+            services.AddJwtServices(configuration);
+
+            // Register DbContext
+            services.AddDbContext<ApplicationDbContext>(options =>
+            {
+                string? assemblyName = typeof(Program).Assembly.GetName().Name;
+                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly(assemblyName));
+            });
+
+            // Add Controllers and Swagger
+            services.AddControllers();
+            services.AddEndpointsApiExplorer();
+
+            // Adds Swagger
+            services.AddSwaggerGen(options =>
+            {
+                options.MapType<DateOnly>(() => new OpenApiSchema
+                {
+                    Type = "string",
+                    Format = "date"
+                });
+
+                // Apply document filter by exposed or add prefix
+                options.DocumentFilter<PathPrefixInsertDocumentFilter>(Swagger.PrefixPath, Swagger.IsExposed);
+
+                // Sepcify our operation filter here
+                options.OperationFilter<AddCommonParameterOperationFilter>();
+
+                options.SwaggerDoc(Swagger.Version, new OpenApiInfo
+                {
+                    Title = Swagger.Title,
+                    Version = Swagger.Version,
+                    Description = Swagger.Description
+                });
+
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Scheme = "bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Name = "Authorization",
+                    Description = "Bearer Authentication with JWT Token",
+                    Type = SecuritySchemeType.Http
+                });
+
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Id = "Bearer",
+                                Type = ReferenceType.SecurityScheme
+                            }
+                        },
+                        new List<string>()
+                    }
+                });
+            });
+        }
+
+        private static void ConfigureMiddleware(WebApplication app, string environmentName)
+        {
             var appSettings = app.Services.GetRequiredService<IOptions<ApplicationSettings>>().Value;
 
-            // Configure the HTTP request pipeline.
             if (!appSettings.IsProductionMode)
             {
                 app.UseSwagger();
-                app.UseSwaggerUI();
+
+                app.UseSwaggerUI(options =>
+                {
+                    options.SwaggerEndpoint($"swagger/{Swagger.Version}/swagger.json", Swagger.Title);
+                    options.RoutePrefix = string.Empty;
+                });
             }
 
-            if (!ExceptionHandlerMiddleware.IsProductionEnvironment(builder.Environment, _environmentName))
+            // Configure error handling
+            if (!ExceptionHandlerMiddleware.IsProductionEnvironment(app.Environment, environmentName))
             {
                 app.UseDeveloperExceptionPage();
-                app.UseExceptionHandler(
-                    ExceptionHandlerMiddleware.CustomExceptionHandlerMiddleware(true, logger));
+                app.UseExceptionHandler(ExceptionHandlerMiddleware.CustomExceptionHandlerMiddleware(true, app.Logger));
             }
             else
             {
-                app.UseExceptionHandler(
-                    ExceptionHandlerMiddleware.CustomExceptionHandlerMiddleware(false, logger));
+                app.UseExceptionHandler(ExceptionHandlerMiddleware.CustomExceptionHandlerMiddleware(false, app.Logger));
                 app.UseHsts();
             }
 
+            // Configure HTTPS redirection and security middleware
             app.UseHttpsRedirection();
 
+            // Configure routing
+            app.UseRouting();
+
+            // Authentication and Authorization
             app.UseAuthorization();
 
+            // Map routes
             app.MapControllers();
-
-            app.Run();
         }
     }
 }
