@@ -1,4 +1,5 @@
 ﻿using Asp.Versioning;
+using Microsoft.AspNetCore.ResponseCompression;
 using Web.Domain.Constants;
 
 namespace Web.Api
@@ -9,7 +10,8 @@ namespace Web.Api
         {
             const int MaxRequestBodySize = 100000000;
             string _myAllowSpecificOrigins = ApplicationConstants.MyAllowSpecificOrigins;
-            // CORS
+
+            // Adds CORS
             services.AddCors(options =>
             {
                 options.AddPolicy(_myAllowSpecificOrigins,
@@ -19,12 +21,20 @@ namespace Web.Api
                 });
             });
 
+            // IIS Server options
             services.Configure<IISServerOptions>(options =>
             {
                 options.MaxRequestBodySize = MaxRequestBodySize;
             });
 
-            // Add versioning
+            services.AddResponseCompression(options =>
+            {
+                options.EnableForHttps = true;
+                options.Providers.Add<BrotliCompressionProvider>();
+                options.Providers.Add<GzipCompressionProvider>();
+            });
+
+            // Adds versioning
             IApiVersioningBuilder apiVersioningBuilder = services.AddApiVersioning(options =>
             {
                 options.DefaultApiVersion = new ApiVersion(1, 0); // Config valid API version - This affects Swagger API version too.
@@ -33,7 +43,7 @@ namespace Web.Api
                 options.ApiVersionReader = new QueryStringApiVersionReader("api-version");
             });
 
-            // Add API version explorer for Swagger
+            // Adds API version explorer for Swagger
             apiVersioningBuilder.AddApiExplorer(options =>
             {
                 options.GroupNameFormat = "'v'VVV";

@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using Mapster;
 using Microsoft.AspNetCore.Http;
+using Web.Application.Dtos.Base;
 using Web.Application.Dtos.Media;
 using Web.Application.Interfaces.ExternalProviders;
 using Web.Application.Interfaces.Repositories;
@@ -13,7 +15,7 @@ namespace Web.Application.Services
         IHttpContextAccessor httpContextAccessor,
         IMapper mapper) : BaseService(httpContextAccessor, mapper), IExampleService
     {
-        public Task<MediaDto> CreateAsync(MediaAddRequest request)
+        public Task<BaseDto> CreateAsync(MediaAddRequest request)
         {
             throw new NotImplementedException();
         }
@@ -23,17 +25,17 @@ namespace Web.Application.Services
             throw new NotImplementedException();
         }
 
-        public Task<MediaDto> GetByIdAsync(string id)
+        public async Task<BaseDto> GetByIdAsync(string id)
+        {
+            return (await exampleRepository.GetExampleByIdAsync(id)).Adapt<BaseDto>();
+        }
+
+        public Task<PaginatedResponse<BaseDto>> SearchAsync(SearchRequest request)
         {
             throw new NotImplementedException();
         }
 
-        public Task<PaginatedResponse<MediaDto>> SearchAsync(SearchRequest request)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<MediaDto> UpdateAsync(MediaUpdateRequest request)
+        public Task<BaseDto> UpdateAsync(MediaUpdateRequest request)
         {
             throw new NotImplementedException();
         }

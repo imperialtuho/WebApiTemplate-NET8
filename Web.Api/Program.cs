@@ -1,5 +1,4 @@
 using Identity.Application.Configurations.Settings;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Web.Api.Extensions;
@@ -9,7 +8,6 @@ using Web.Application;
 using Web.Application.Configurations.Settings;
 using Web.Domain.Constants;
 using Web.Infrastructure;
-using Web.Infrastructure.Database;
 
 namespace Web.Api
 {
@@ -62,13 +60,6 @@ namespace Web.Api
             services.AddApplicationServices(configuration);
             services.AddApiServices(configuration);
             services.AddJwtServices(configuration);
-
-            // Register DbContext
-            services.AddDbContext<ApplicationDbContext>(options =>
-            {
-                string? assemblyName = typeof(Program).Assembly.GetName().Name;
-                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly(assemblyName));
-            });
 
             // Add Controllers and Swagger
             services.AddControllers();

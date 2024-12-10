@@ -13,9 +13,16 @@ namespace Web.Infrastructure.Repositories.Providers.Blogs
         {
         }
 
-        public Task<IList<Example>> GetByIdsAsync(IList<string> ids)
+        public async Task<Example> GetExampleByIdAsync(string id)
         {
-            throw new NotImplementedException();
+            bool isMocking = string.IsNullOrWhiteSpace(id);
+
+            if (isMocking)
+            {
+                return new Example() { };
+            }
+
+            return await GetEntityByIdAsync(id);
         }
     }
 }
