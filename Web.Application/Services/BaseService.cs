@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Web.Domain.Common;
+using Web.Domain.Exceptions;
 using Web.Domain.Extensions;
 using Web.Domain.SharedKernel;
 
@@ -51,33 +52,25 @@ namespace Web.Application.Services
         }
 
         /// <summary>
-        /// Checks the action is being performed by admin or its owner.
+        /// Checking current performing operation.
         /// </summary>
-        /// <param name="ownerId">The data's ownerId.</param>
-        /// <returns>True if action is performed by admin or the ownerId matched with its own data.</returns>
-        protected bool IsCurrentPerformingOperationValid(string? ownerId = null)
+        /// <param name="ownerId">The ownerId.</param>
+        /// <exception cref="ForbiddenException">When current operation is invalid/forbidden.</exception>
+        protected void CheckingCurrentPerformingOperation(string? ownerId = null)
         {
             UserSession? loginSession = LoginSession;
+            string message = $"You're not allowed to perform this action";
 
-            // if the action performs by admins -> valid
-            if (loginSession is not null && IsActionPerformByAdmin(loginSession))
+            // if the action is not performing by admins -> forbidden
+            if (loginSession is null && !IsActionPerformByAdmin(loginSession))
             {
-                return true;
+                throw new ForbiddenException(message);
             }
 
-            // ownerId is null -> invalid
-            if (ownerId == null)
+            if (string.IsNullOrEmpty(ownerId) || !ownerId.Equals(loginSession?.UserId))
             {
-                return false;
+                throw new ForbiddenException(message);
             }
-
-            // Checks owner's data to its action. If owner's data matched with the provided ownerId -> valid
-            if (!string.IsNullOrEmpty(ownerId) && ownerId.Equals(loginSession?.UserId))
-            {
-                return true;
-            }
-
-            return false;
         }
     }
 }
