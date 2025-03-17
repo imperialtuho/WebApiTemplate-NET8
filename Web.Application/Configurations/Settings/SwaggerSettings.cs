@@ -1,4 +1,4 @@
-﻿namespace Identity.Application.Configurations.Settings
+﻿namespace Web.Application.Configurations.Settings
 {
     public class SwaggerSettings
     {

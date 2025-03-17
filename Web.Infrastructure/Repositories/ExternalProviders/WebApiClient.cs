@@ -1,5 +1,4 @@
-﻿using Web.Domain.Exceptions;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Text;
@@ -7,6 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Xml.Serialization;
 using Web.Domain.Constants;
+using Web.Domain.Exceptions;
 
 namespace Web.Infrastructure.Repositories.ExternalProviders
 {

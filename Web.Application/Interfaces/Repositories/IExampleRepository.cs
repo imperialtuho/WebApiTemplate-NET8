@@ -2,8 +2,8 @@
 
 namespace Web.Application.Interfaces.Repositories
 {
-    public interface IExampleRepository : IEntityFrameworkGenericRepository<Example>
+    public interface IExampleRepository : IEntityFrameworkGenericRepository<ExampleEntity>
     {
-        Task<Example> GetExampleByIdAsync(string id);
+        Task<ExampleEntity> GetExampleByIdAsync(string id);
     }
 }

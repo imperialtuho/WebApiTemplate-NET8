@@ -2,6 +2,6 @@
 {
     public class PasswordDto
     {
-        public required string Password { get; set; }
+        public string Password { get; set; }
     }
 }

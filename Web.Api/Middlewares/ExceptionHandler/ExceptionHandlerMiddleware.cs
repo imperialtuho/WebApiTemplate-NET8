@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
 using Newtonsoft.Json;
 using System.Security.Authentication;
-using Web.Domain.Exceptions;
 
 namespace Web.Api.Middlewares.ExceptionHandler
 {
@@ -21,7 +20,7 @@ namespace Web.Api.Middlewares.ExceptionHandler
                     ErrorCode = HttpStatusCode.InternalServerError,
                     Message = specificException.Message,
                     InnerExceptionMessage = specificException.InnerException?.Message,
-                    Path = exceptionHandlerPathFeature.Path,
+                    Path = isDevelopment ? exceptionHandlerPathFeature.Path : string.Empty,
                     StackTrace = isDevelopment ? specificException.StackTrace : string.Empty,
                 };
 

@@ -5,21 +5,21 @@ using Web.Domain.Entities;
 using Web.Infrastructure.Configurations;
 using Web.Infrastructure.Database;
 
-namespace Web.Infrastructure.Repositories.Providers.Blogs
+namespace Web.Infrastructure.Repositories.Providers.Example
 {
-    public class ExampleRepository : DbSqlConnectionEFRepositoryBase<ApplicationDbContext, Example>, IExampleRepository
+    public class ExampleRepository : DbSqlConnectionEFRepositoryBase<ApplicationDbContext, ExampleEntity>, IExampleRepository
     {
         public ExampleRepository(ISqlConnectionFactory sqlConnectionFactory, IHttpContextAccessor httpContextAccessor) : base(sqlConnectionFactory, httpContextAccessor)
         {
         }
 
-        public async Task<Example> GetExampleByIdAsync(string id)
+        public async Task<ExampleEntity> GetExampleByIdAsync(string id)
         {
             bool isMocking = string.IsNullOrWhiteSpace(id);
 
             if (isMocking)
             {
-                return new Example() { };
+                return new ExampleEntity() { };
             }
 
             return await GetEntityByIdAsync(id);

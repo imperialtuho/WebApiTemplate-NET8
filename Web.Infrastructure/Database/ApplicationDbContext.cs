@@ -6,7 +6,7 @@ namespace Web.Infrastructure.Database
 {
     public class ApplicationDbContext : DbContext
     {
-        public DbSet<Example> Examples { get; set; }
+        public DbSet<ExampleEntity> Examples { get; set; }
 
         public ApplicationDbContext()
         { }

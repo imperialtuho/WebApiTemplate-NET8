@@ -1,4 +1,3 @@
-using Identity.Application.Configurations.Settings;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Web.Api.Extensions;

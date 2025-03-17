@@ -9,7 +9,7 @@ using Web.Application.Interfaces.Repositories;
 using Web.Infrastructure.Configurations;
 using Web.Infrastructure.Database;
 using Web.Infrastructure.Repositories.ExternalProviders.IdentityApi;
-using Web.Infrastructure.Repositories.Providers.Blogs;
+using Web.Infrastructure.Repositories.Providers.Example;
 
 namespace Web.Infrastructure
 {

@@ -1,6 +1,4 @@
-﻿using Web.Application.Dtos.Other;
-using Web.Domain.Exceptions;
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -11,6 +9,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using Web.Application.Configurations.Settings;
+using Web.Application.Dtos.Other;
 using Web.Domain.Helpers;
 
 namespace Web.Api.Middlewares.Authentication

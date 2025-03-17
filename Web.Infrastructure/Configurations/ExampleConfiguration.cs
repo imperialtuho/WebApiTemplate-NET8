@@ -4,11 +4,11 @@ using Web.Domain.Entities;
 
 namespace Web.Infrastructure.Configurations
 {
-    public class ExampleConfiguration : IEntityTypeConfiguration<Example>
+    public class ExampleConfiguration : IEntityTypeConfiguration<ExampleEntity>
     {
-        public void Configure(EntityTypeBuilder<Example> builder)
+        public void Configure(EntityTypeBuilder<ExampleEntity> builder)
         {
-            builder.ToTable(nameof(Example));
+            builder.ToTable(nameof(ExampleEntity));
         }
     }
 }
