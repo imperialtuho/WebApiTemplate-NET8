@@ -4,15 +4,26 @@ using WebApiTemplate.Domain.Helpers;
 
 namespace WebApiTemplate.Api.Controllers
 {
+    /// <summary>
+    /// Example API controller supporting multiple API versions.
+    /// </summary>
+    /// <remarks>
+    /// This controller provides endpoints for versioned API responses.
+    /// </remarks>
     [ApiVersion("1.0")]
     [ApiVersion("2.0")]
     [Route("api/v{version:apiVersion}/[controller]")]
     public class ExampleController(IExampleService exampleService) : BaseController
     {
         /// <summary>
-        /// API version 1.
+        /// Retrieves example data for API version 1.0.
         /// </summary>
-        /// <returns>Data v1.</returns>
+        /// <returns>
+        /// Returns example data specific to API v1.0.
+        /// </returns>
+        /// <remarks>
+        /// This method demonstrates AES encryption and decryption before returning the response.
+        /// </remarks>
         [HttpGet]
         [MapToApiVersion("1.0")]
         [AllowAnonymous]
@@ -33,9 +44,11 @@ namespace WebApiTemplate.Api.Controllers
         }
 
         /// <summary>
-        /// API version 2.
+        /// Retrieves example data for API version 2.0.
         /// </summary>
-        /// <returns>Data v2.</returns>
+        /// <returns>
+        /// Returns example data specific to API v2.0.
+        /// </returns>
         [HttpGet]
         [MapToApiVersion("2.0")]
         public IActionResult GetV2()

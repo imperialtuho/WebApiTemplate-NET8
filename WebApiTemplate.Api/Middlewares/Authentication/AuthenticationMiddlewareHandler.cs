@@ -16,14 +16,14 @@ using WebApiTemplate.Domain.Helpers;
 namespace WebApiTemplate.Api.Middlewares.Authentication
 {
     /// <summary>
-    /// The AuthenticationMiddlewareHandler constructor.
+    /// Middleware handler for authentication, responsible for validating JWT tokens.
     /// </summary>
-    /// <param name="options">The options.</param>
-    /// <param name="applicationSettings">The applicationSettings.</param>
-    /// <param name="logger">The logger.</param>
-    /// <param name="encoder">The encoder.</param>
-    /// <param name="cache">The cache.</param>
-    /// <param name="httpClientFactory">The httpClientFactory.</param>
+    /// <param name="options">The authentication options.</param>
+    /// <param name="applicationSettings">The application settings.</param>
+    /// <param name="logger">The logger factory.</param>
+    /// <param name="encoder">The URL encoder.</param>
+    /// <param name="cache">The memory cache.</param>
+    /// <param name="httpClientFactory">The HTTP client factory.</param>
     public class AuthenticationMiddlewareHandler(
         IOptionsMonitor<AuthenticationMiddlewareOptions> options,
         IOptions<ApplicationSettings> applicationSettings,
@@ -33,32 +33,32 @@ namespace WebApiTemplate.Api.Middlewares.Authentication
         IHttpClientFactory httpClientFactory) : AuthenticationHandler<AuthenticationMiddlewareOptions>(options, logger, encoder)
     {
         /// <summary>
-        /// The logger.
+        /// Logger instance for authentication events.
         /// </summary>
         private readonly ILogger _logger = logger.CreateLogger<AuthenticationMiddlewareHandler>();
 
         /// <summary>
-        /// The IdentityUrl.
+        /// The identity service URL.
         /// </summary>
         public static string? IdentityUrl { get; set; }
 
         /// <summary>
-        /// The cacheKey.
+        /// Cache key for JWT settings.
         /// </summary>
         private const string CacheKey = nameof(JwtSettings);
 
         /// <summary>
-        /// The Unauthorized string constant.
+        /// The unauthorized access message.
         /// </summary>
         private const string Unauthorized = nameof(Unauthorized);
 
         /// <summary>
-        /// The Bearer.
+        /// The Bearer token prefix.
         /// </summary>
         private const string Bearer = nameof(Bearer);
 
         /// <summary>
-        /// Default JsonSerializerOptions.
+        /// Default JSON serialization options.
         /// </summary>
         private readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions
         {
@@ -67,9 +67,9 @@ namespace WebApiTemplate.Api.Middlewares.Authentication
         };
 
         /// <summary>
-        /// Handle Authenticate Async.
+        /// Handles authentication for incoming requests.
         /// </summary>
-        /// <returns>Task{AuthenticateResult}.</returns>
+        /// <returns>An authentication result indicating success or failure.</returns>
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
             if (!Request.Headers.TryGetValue("Authorization", out Microsoft.Extensions.Primitives.StringValues value))
@@ -108,6 +108,11 @@ namespace WebApiTemplate.Api.Middlewares.Authentication
             }
         }
 
+        /// <summary>
+        /// Validates the provided JWT token.
+        /// </summary>
+        /// <param name="token">The JWT token.</param>
+        /// <returns>An authentication result.</returns>
         private async Task<AuthenticateResult> ValidateTokenAsync(string token)
         {
             if (string.IsNullOrEmpty(token))
@@ -125,14 +130,14 @@ namespace WebApiTemplate.Api.Middlewares.Authentication
         }
 
         /// <summary>
-        /// Gets identity from token for verifying.
+        /// Retrieves identity information from a JWT token.
         /// </summary>
-        /// <param name="token">The token.</param>
-        /// <param name="isRetry">Retry parameter.</param>
-        /// <returns>A Task with a type of ClaimsIdentity in result.</returns>
-        /// <exception cref="NotFoundException"></exception>
-        /// <exception cref="SecurityTokenExpiredException"></exception>
-        /// <exception cref="UnhandledException"></exception>
+        /// <param name="token">The JWT token.</param>
+        /// <param name="isRetry">Indicates if this is a retry attempt.</param>
+        /// <returns>A task representing the operation, containing the claims identity.</returns>
+        /// <exception cref="NotFoundException">Thrown if JWT settings are not found.</exception>
+        /// <exception cref="SecurityTokenExpiredException">Thrown if the token is expired.</exception>
+        /// <exception cref="UnhandledException">Thrown for unhandled exceptions.</exception>
         private async Task<ClaimsIdentity> GetIdentityFromTokenAsync(string token, bool isRetry = false)
         {
             try
@@ -185,9 +190,9 @@ namespace WebApiTemplate.Api.Middlewares.Authentication
         }
 
         /// <summary>
-        /// Handle Get JwtSettings From MemoryCache.
+        /// Retrieves JWT settings from memory cache or the identity service.
         /// </summary>
-        /// <returns> A Task with JwtSettings in result.</returns>
+        /// <returns>A task representing the operation, containing the JWT settings.</returns>
         public async Task<JwtSettings?> GetJwtSettingsAsync()
         {
             try
@@ -236,9 +241,8 @@ namespace WebApiTemplate.Api.Middlewares.Authentication
         }
 
         /// <summary>
-        /// Handle remove JwtSettings in MemoryCache.
+        /// Removes cached JWT settings from memory.
         /// </summary>
-        /// <returns></returns>
         public void RemoveJwtSettingsCache()
         {
             cache.Remove(CacheKey);

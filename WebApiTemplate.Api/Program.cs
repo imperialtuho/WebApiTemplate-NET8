@@ -10,20 +10,33 @@ using WebApiTemplate.Infrastructure;
 
 namespace WebApiTemplate.Api
 {
+    /// <summary>
+    /// The entry point of the application.
+    /// Responsible for configuring services, middleware, and running the application.
+    /// </summary>
     public class Program
     {
+        /// <summary>
+        /// Stores the Swagger configuration settings loaded from appsettings.
+        /// </summary>
         private static SwaggerSettings Swagger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Program"/> class.
+        /// </summary>
         protected Program()
         { }
 
+        /// <summary>
+        /// The entry point for the application.
+        /// It initializes configuration, logging, services, and middleware, then starts the application.
+        /// </summary>
+        /// <param name="args">Command-line arguments.</param>
         protected static async Task Main(string[] args)
         {
-            var environmentName = ApplicationConstants.EnvironmentName;
+            WebApplicationBuilder? builder = WebApplication.CreateBuilder(args);
 
-            var builder = WebApplication.CreateBuilder(args);
-
-            environmentName = Environment.GetEnvironmentVariable(ApplicationConstants.AspNetCoreEnvironment) ?? ApplicationConstants.DefaultEnvironmentName;
+            string environmentName = Environment.GetEnvironmentVariable(ApplicationConstants.AspNetCoreEnvironment) ?? ApplicationConstants.DefaultEnvironmentName;
 
             // Create a logger
             using var loggerFactory = LoggerFactory.Create(builder =>
@@ -33,38 +46,46 @@ namespace WebApiTemplate.Api
 
             loggerFactory.CreateLogger<Program>().LogInformation("Environment name: {EnvironmentName}", environmentName);
 
+            // Load configuration
             builder.Configuration
                 .SetBasePath(builder.Environment.ContentRootPath)
                 .AddEnvironmentVariables()
                 .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true);
 
+            // Retrieve Swagger settings
             Swagger = builder.Configuration.GetSection(nameof(SwaggerSettings)).Get<SwaggerSettings>()
                     ?? throw new ArgumentException($"{nameof(SwaggerSettings)} is missing in appsettings!");
 
-            // Register services
+            // Register application services
             ConfigureServices(builder.Services, builder.Configuration);
 
-            var app = builder.Build();
+            WebApplication? app = builder.Build();
 
-            // Configure middleware and request pipeline
+            // Configure middleware pipeline
             ConfigureMiddleware(app, environmentName);
 
+            // Run the application
             await app.RunAsync();
         }
 
+        /// <summary>
+        /// Configures and registers application services.
+        /// </summary>
+        /// <param name="services">The service collection to register dependencies.</param>
+        /// <param name="configuration">The application configuration.</param>
         private static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
-            // Register custom services
+            // Registers custom services
             services.AddInfrastructureServices(configuration);
             services.AddApplicationServices(configuration);
             services.AddApiServices(configuration);
-            services.AddJwtServices(configuration);
+            services.AddAthenticationServices(configuration);
 
-            // Add Controllers and Swagger
+            // Adds Controllers and API Explorer
             services.AddControllers();
             services.AddEndpointsApiExplorer();
 
-            // Adds Swagger
+            // Configures Swagger (OpenAPI)
             services.AddSwaggerGen(options =>
             {
                 options.MapType<DateOnly>(() => new OpenApiSchema
@@ -73,12 +94,13 @@ namespace WebApiTemplate.Api
                     Format = "date"
                 });
 
-                // Apply document filter by exposed or add prefix
+                // Applies document filter for API path prefixing
                 options.DocumentFilter<PathPrefixInsertDocumentFilter>(Swagger.PrefixPath, Swagger.IsExposed);
 
-                // Sepcify our operation filter here
+                // Adds custom operation filters
                 options.OperationFilter<AddCommonParameterOperationFilter>();
 
+                // Defines Swagger documentation metadata
                 options.SwaggerDoc(Swagger.Version, new OpenApiInfo
                 {
                     Title = Swagger.Title,
@@ -86,6 +108,7 @@ namespace WebApiTemplate.Api
                     Description = Swagger.Description
                 });
 
+                // Configures JWT Bearer authentication for Swagger UI
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Scheme = "bearer",
@@ -113,10 +136,16 @@ namespace WebApiTemplate.Api
             });
         }
 
+        /// <summary>
+        /// Configures the middleware pipeline for request handling.
+        /// </summary>
+        /// <param name="app">The web application instance.</param>
+        /// <param name="environmentName">The current environment name.</param>
         private static void ConfigureMiddleware(WebApplication app, string environmentName)
         {
             var appSettings = app.Services.GetRequiredService<IOptions<ApplicationSettings>>().Value;
 
+            // Enable Swagger for non-production environments
             if (!appSettings.IsProductionMode)
             {
                 app.UseSwagger();
@@ -128,7 +157,7 @@ namespace WebApiTemplate.Api
                 });
             }
 
-            // Configure error handling
+            // Configure global exception handling
             if (!ExceptionHandlerMiddleware.IsProductionEnvironment(app.Environment, environmentName))
             {
                 app.UseDeveloperExceptionPage();
@@ -140,16 +169,16 @@ namespace WebApiTemplate.Api
                 app.UseHsts();
             }
 
-            // Configure HTTPS redirection and security middleware
+            // Enforce HTTPS redirection
             app.UseHttpsRedirection();
 
-            // Configure routing
+            // Configure request routing
             app.UseRouting();
 
-            // Authentication and Authorization
+            // Apply authentication and authorization
             app.UseAuthorization();
 
-            // Map routes
+            // Map API controllers
             app.MapControllers();
         }
     }

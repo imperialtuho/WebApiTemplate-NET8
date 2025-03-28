@@ -3,6 +3,9 @@ using System.Web;
 
 namespace WebApiTemplate.Infrastructure.Repositories.ExternalProviders
 {
+    /// <summary>
+    /// A fluent builder for constructing URIs with dynamic path segments and query parameters.
+    /// </summary>
     public class FluentUriBuilder
     {
         private readonly HashSet<string> _pathSegments = []; // Use HashSet to prevent duplicate segments
@@ -13,6 +16,7 @@ namespace WebApiTemplate.Infrastructure.Repositories.ExternalProviders
         /// Initializes a new instance of the <see cref="FluentUriBuilder"/> class.
         /// </summary>
         /// <param name="baseUri">The base URI to build upon.</param>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="baseUri"/> is null or empty.</exception>
         public FluentUriBuilder(string baseUri)
         {
             if (string.IsNullOrWhiteSpace(baseUri))
@@ -22,7 +26,7 @@ namespace WebApiTemplate.Infrastructure.Repositories.ExternalProviders
         }
 
         /// <summary>
-        /// Gets the fully constructed <see cref="Uri"/>.
+        /// Gets the fully constructed <see cref="Uri"/> with appended path segments and query parameters.
         /// </summary>
         public Uri Uri
         {
@@ -48,6 +52,7 @@ namespace WebApiTemplate.Infrastructure.Repositories.ExternalProviders
         /// <param name="name">The parameter name.</param>
         /// <param name="value">The parameter value.</param>
         /// <returns>The same <see cref="FluentUriBuilder"/> instance.</returns>
+        /// <exception cref="ArgumentException">Thrown when name is null or empty.</exception>
         public FluentUriBuilder AddQueryParam(string name, object value)
         {
             if (string.IsNullOrWhiteSpace(name))

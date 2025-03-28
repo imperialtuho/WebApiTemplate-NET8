@@ -7,6 +7,9 @@ using WebApiTemplate.Domain.Enums;
 
 namespace WebApiTemplate.Infrastructure.Configurations
 {
+    /// <summary>
+    /// Factory for managing database connections, supporting both SQL Server and PostgreSQL.
+    /// </summary>
     public class SqlConnectionFactory : ISqlConnectionFactory, IDisposable
     {
         private readonly IConfiguration _configuration;
@@ -14,15 +17,19 @@ namespace WebApiTemplate.Infrastructure.Configurations
         private bool _disposed = false;
         private ConnectionStringType _connectionStringType;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SqlConnectionFactory"/> class.
+        /// </summary>
+        /// <param name="configuration">Application configuration settings.</param>
         public SqlConnectionFactory(IConfiguration configuration)
         {
             _configuration = configuration;
         }
 
         /// <summary>
-        /// Gets open connection.
+        /// Gets an open database connection. If a connection is already open, it returns that.
         /// </summary>
-        /// <returns>IDbConnection.</returns>
+        /// <returns>An open <see cref="IDbConnection"/> instance.</returns>
         public IDbConnection GetOpenConnection()
         {
             if (_connection == null || _connection.State != ConnectionState.Open)
@@ -53,9 +60,9 @@ namespace WebApiTemplate.Infrastructure.Configurations
         }
 
         /// <summary>
-        /// Initialises new connections.
+        /// Creates a new database connection without opening it.
         /// </summary>
-        /// <returns>IDbConnection.</returns>
+        /// <returns>A new instance of <see cref="IDbConnection"/>.</returns>
         public IDbConnection GetNewConnection()
         {
             switch (_connectionStringType)
@@ -75,9 +82,9 @@ namespace WebApiTemplate.Infrastructure.Configurations
         }
 
         /// <summary>
-        /// Gets connection string and Database type.
+        /// Retrieves the current database connection string and its type.
         /// </summary>
-        /// <returns>The connectionString and The dbType.</returns>
+        /// <returns>A tuple containing the connection string and the database type.</returns>
         public (string? connectionString, ConnectionStringType dbType) GetConnectionStringAndDbType()
         {
             switch (_connectionStringType)
@@ -100,16 +107,16 @@ namespace WebApiTemplate.Infrastructure.Configurations
         }
 
         /// <summary>
-        /// Sets connection string type.
+        /// Sets the connection string type (e.g., SQL Server, PostgreSQL) <see cref="ConnectionStringType"/>.
         /// </summary>
-        /// <param name="connectionStringType">The connectionStringType.</param>
+        /// <param name="connectionStringType">The database type to use.</param>
         public void SetConnectionStringType(ConnectionStringType connectionStringType)
         {
             _connectionStringType = connectionStringType;
         }
 
         /// <summary>
-        /// Document: https://rules.sonarsource.com/csharp/RSPEC-3881
+        /// Releases database connections properly to prevent memory leaks.
         /// </summary>
         public void Dispose()
         {
@@ -117,6 +124,10 @@ namespace WebApiTemplate.Infrastructure.Configurations
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Disposes of the database connection if it is open.
+        /// </summary>
+        /// <param name="disposing">Indicates whether to dispose managed resources.</param>
         protected virtual void Dispose(bool disposing)
         {
             if (_disposed)

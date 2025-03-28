@@ -13,14 +13,17 @@ using WebApiTemplate.Infrastructure.Repositories.Providers.Example;
 
 namespace WebApiTemplate.Infrastructure
 {
+    /// <summary>
+    /// Provides extension methods for configuring infrastructure services in the application's dependency injection container.
+    /// </summary>
     public static class DependencyInjection
     {
         /// <summary>
-        /// Adds Infrastructure Services.
+        /// Registers infrastructure-related services, including database, caching, and API clients.
         /// </summary>
-        /// <param name="services">The services.</param>
-        /// <param name="configuration">The configuration.</param>
-        /// <returns>IServiceCollection.</returns>
+        /// <param name="services">The IServiceCollection to add services to.</param>
+        /// <param name="configuration">Application configuration settings.</param>
+        /// <returns>The modified IServiceCollection instance.</returns>
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddOptions();

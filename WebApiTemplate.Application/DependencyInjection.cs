@@ -11,10 +11,16 @@ using WebApiTemplate.Application.Services;
 namespace WebApiTemplate.Application
 {
     /// <summary>
-    /// Application dependency injection.
+    /// Provides extension methods for configuring infrastructure services in the application's dependency injection container.
     /// </summary>
     public static class DependencyInjection
     {
+        /// <summary>
+        /// Configures application-wide services, settings, and dependency injection.
+        /// </summary>
+        /// <param name="services">The IServiceCollection to add services to.</param>
+        /// <param name="configuration">Application configuration settings.</param>
+        /// <returns>The modified IServiceCollection instance.</returns>
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
         {
             // Gets appsetting json section details

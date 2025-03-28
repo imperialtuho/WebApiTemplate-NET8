@@ -5,10 +5,16 @@ using WebApiTemplate.Domain.Constants;
 namespace WebApiTemplate.Api
 {
     /// <summary>
-    /// API dependency injection.
+    /// Provides extension methods for configuring API-related services in the application's dependency injection container.
     /// </summary>
     public static class DependencyInjection
     {
+        /// <summary>
+        /// Configures API-related services such as CORS, request compression, and API versioning.
+        /// </summary>
+        /// <param name="services">The IServiceCollection to add services to.</param>
+        /// <param name="configuration">Application configuration settings.</param>
+        /// <returns>The modified IServiceCollection instance.</returns>
         public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration)
         {
             const int MaxRequestBodySize = 100000000;

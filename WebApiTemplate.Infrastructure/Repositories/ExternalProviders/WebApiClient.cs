@@ -10,6 +10,9 @@ using WebApiTemplate.Domain.Exceptions;
 
 namespace WebApiTemplate.Infrastructure.Repositories.ExternalProviders
 {
+    /// <summary>
+    /// Provides a base class for making HTTP requests using an HttpClient.
+    /// </summary>
     public abstract class WebApiClient
     {
         protected readonly ILogger<WebApiClient> _logger;
@@ -17,6 +20,12 @@ namespace WebApiTemplate.Infrastructure.Repositories.ExternalProviders
         protected readonly IHttpContextAccessor _httpContextAccessor;
         private readonly JsonSerializerOptions _defaultJsonOptions;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="WebApiClient"/> class.
+        /// </summary>
+        /// <param name="logger">The logger instance.</param>
+        /// <param name="httpClientFactory">The factory for creating <see cref="HttpClient"/> instances.</param>
+        /// <param name="httpContextAccessor">The accessor for retrieving the current HTTP context.</param>
         protected WebApiClient(
             ILogger<WebApiClient> logger,
             IHttpClientFactory httpClientFactory,
