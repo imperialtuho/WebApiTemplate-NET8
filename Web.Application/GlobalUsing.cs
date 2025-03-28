@@ -1,2 +1,0 @@
-﻿global using static Web.Domain.Constants.LoggerMessageConstants;
-

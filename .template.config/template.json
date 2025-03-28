@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Tu Ho",
+  "classifications": ["Custom Templates"],
+  "identity": "WebApiTemplate",
+  "name": "Web API template",
+  "shortName": "webapi-template",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "symbols": {
+    "ProjectName": {
+      "type": "parameter",
+      "dataType": "string",
+      "replaces": "WebApiTemplate",
+      "fileRename": "WebApiTemplate",
+      "isRequired": true
+    }
+  },
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "exclude": [
+            "README.md",
+            ".git/**",
+            ".vs/**"
+          ]
+        }
+      ]
+    }
+  ]
+}
