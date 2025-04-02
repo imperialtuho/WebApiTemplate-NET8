@@ -140,6 +140,41 @@ namespace WebApiTemplate.Infrastructure.Repositories.Providers
         }
 
         /// <summary>
+        /// Adds a collection of entities to the database and saves changes immediately.
+        /// </summary>
+        /// <param name="entities">The collection of entities to be added.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result is <c>true</c> if the operation was successful;
+        /// otherwise, <c>false</c>.
+        /// </returns>
+        /// <remarks>
+        /// This method adds multiple entities to the database context and commits the changes immediately.
+        /// If the save operation fails, it may result in a partial or unsuccessful transaction.
+        /// </remarks>
+        public async Task<bool> AddRangeAndSaveChangesAsync(IEnumerable<T> entities)
+        {
+            if (entities == null || !entities.Any())
+            {
+                throw new InvalidOperationException($"{nameof(entities)} cannot be null or empty; at least one entity is required.");
+            }
+
+            foreach (T entity in entities)
+            {
+                InitializeEntity(entity);
+            }
+
+            await _dbContext.Set<T>().AddRangeAsync(entities);
+            int result = await _dbContext.SaveChangesAsync();
+
+            foreach (T entity in entities)
+            {
+                _dbContext.Entry(entity).State = EntityState.Unchanged;
+            }
+
+            return result > 0;
+        }
+
+        /// <summary>
         /// Asynchronously adds a new entity to the database context, saves changes to the database, and returns the saved entity.
         /// </summary>
         /// <param name="entity">The entity to add.</param>
@@ -156,6 +191,41 @@ namespace WebApiTemplate.Infrastructure.Repositories.Providers
             _dbContext.Entry(entity).State = EntityState.Unchanged;
 
             return entity;
+        }
+
+        /// <summary>
+        /// Adds a collection of entities to the database, saves changes immediately, and returns the added entities.
+        /// </summary>
+        /// <param name="entities">The collection of entities to be added.</param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains a list of the added entities,
+        /// including any database-generated values such as primary keys.
+        /// </returns>
+        /// <remarks>
+        /// This method adds multiple entities to the database context, commits the changes immediately,
+        /// and returns the entities with any automatically generated fields (e.g., IDs) populated.
+        /// </remarks>
+        public async Task<IList<T>> AddRangeWithSaveChangesAndReturnModelsAsync(IEnumerable<T> entities)
+        {
+            if (entities == null || !entities.Any())
+            {
+                throw new InvalidOperationException($"{nameof(entities)} cannot be null or empty; at least one entity is required.");
+            }
+
+            foreach (T entity in entities)
+            {
+                InitializeEntity(entity);
+            }
+
+            await _dbContext.Set<T>().AddRangeAsync(entities);
+            await SaveChangesAsync();
+
+            foreach (T entity in entities)
+            {
+                _dbContext.Entry(entity).State = EntityState.Unchanged;
+            }
+
+            return entities as IList<T> ?? entities.ToList();
         }
 
         /// <summary>
@@ -476,7 +546,7 @@ namespace WebApiTemplate.Infrastructure.Repositories.Providers
 
             if (string.IsNullOrEmpty(entity.CreatedBy))
             {
-                entity.CreatedBy = LoginSession?.Email ?? "Site Administrators";
+                entity.CreatedBy = LoginSession?.Email ?? DefaultModifier;
             }
 
             entity.CreatedDate = DateTime.UtcNow;

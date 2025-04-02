@@ -48,6 +48,19 @@ namespace WebApiTemplate.Application.Interfaces.Repositories
         Task<bool> AddAndSaveChangesAsync(T entity);
 
         /// <summary>
+        /// Adds a collection of entities to the database and saves changes immediately.
+        /// </summary>
+        /// <param name="entities">The collection of entities to add.</param>
+        /// <returns>
+        /// A task indicating whether the operation was successful (true if successful, false otherwise).
+        /// </returns>
+        /// <remarks>
+        /// This method adds multiple entities to the context and immediately commits the changes to the database.
+        /// If any entity fails to be added, the operation may not be fully completed.
+        /// </remarks>
+        Task<bool> AddRangeAndSaveChangesAsync(IEnumerable<T> entities);
+
+        /// <summary>
         /// Adds a new entity, saves changes immediately, and returns the saved entity.
         /// </summary>
         /// <param name="entity">The entity to add.</param>
@@ -57,6 +70,19 @@ namespace WebApiTemplate.Application.Interfaces.Repositories
         /// Useful when you need to confirm the entity’s final state after saving.
         /// </remarks>
         Task<T> AddWithSaveChangesAndReturnModelAsync(T entity);
+
+        /// <summary>
+        /// Adds a collection of entities to the database, saves changes immediately, and returns the added entities.
+        /// </summary>
+        /// <param name="entities">The collection of entities to add.</param>
+        /// <returns>
+        /// A task that resolves to a list of the added entities, reflecting any database-generated values.
+        /// </returns>
+        /// <remarks>
+        /// This method adds multiple entities to the context, commits the changes to the database immediately,
+        /// and returns the added entities, including any automatically generated fields such as IDs.
+        /// </remarks>
+        Task<IList<T>> AddRangeWithSaveChangesAndReturnModelsAsync(IEnumerable<T> entities);
 
         /// <summary>
         /// Commits all tracked changes to the database.
