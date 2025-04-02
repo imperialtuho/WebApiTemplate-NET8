@@ -79,7 +79,7 @@ namespace WebApiTemplate.Api
             services.AddInfrastructureServices(configuration);
             services.AddApplicationServices(configuration);
             services.AddApiServices(configuration);
-            services.AddAthenticationServices(configuration);
+            services.AddAuthenticationServices(configuration);
 
             // Adds Controllers and API Explorer
             services.AddControllers();

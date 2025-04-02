@@ -27,20 +27,21 @@ namespace WebApiTemplate.Api.Controllers
         [HttpGet]
         [MapToApiVersion("1.0")]
         [AllowAnonymous]
-        public IActionResult GetV1()
+        public async Task<IActionResult> GetAsyncV1()
         {
             string password = "StrongPassword123";
             string plaintext = "Hello, world!";
 
             string encrypted = AesEncryptionHelper.Encrypt(plaintext, password);
-            Console.WriteLine($"Encrypted: {encrypted}");
+            Console.WriteLine($"Encrypted: {encrypted}\n");
+            Console.WriteLine($"Is encrypted string as base64 valid?: {CheckingHelper.IsBase64String(encrypted)}\n");
 
             string decrypted = AesEncryptionHelper.Decrypt(encrypted, password);
-            Console.WriteLine($"Decrypted: {decrypted}");
 
+            Console.WriteLine($"Decrypted: {decrypted}\n");
             Console.WriteLine($"Is plaintext equals to descripted text?: {plaintext.Equals(decrypted)}");
 
-            return Result(exampleService.GetByIdAsync(string.Empty), HttpStatusCode.OK);
+            return Result(await exampleService.GetByIdAsync(string.Empty), HttpStatusCode.OK);
         }
 
         /// <summary>
@@ -51,9 +52,9 @@ namespace WebApiTemplate.Api.Controllers
         /// </returns>
         [HttpGet]
         [MapToApiVersion("2.0")]
-        public IActionResult GetV2()
+        public async Task<IActionResult> GetAsyncV2()
         {
-            return Result(exampleService.GetByIdAsync(string.Empty), HttpStatusCode.OK);
+            return Result(await exampleService.GetByIdAsync(string.Empty), HttpStatusCode.OK);
         }
     }
 }

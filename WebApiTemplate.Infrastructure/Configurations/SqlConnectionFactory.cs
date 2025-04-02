@@ -8,8 +8,13 @@ using WebApiTemplate.Domain.Enums;
 namespace WebApiTemplate.Infrastructure.Configurations
 {
     /// <summary>
-    /// Factory for managing database connections, supporting both SQL Server and PostgreSQL.
+    /// Factory for managing database connections, supporting any type of databases.
     /// </summary>
+    /// <remarks>
+    /// This class provides methods for obtaining database connections to SQL Server or PostgreSQL based on the connection string configuration.
+    /// It ensures that only one open connection exists at a time and properly manages the lifecycle of the connection.
+    /// It also supports switching between different database connection types.
+    /// </remarks>
     public class SqlConnectionFactory : ISqlConnectionFactory, IDisposable
     {
         private readonly IConfiguration _configuration;
@@ -20,7 +25,11 @@ namespace WebApiTemplate.Infrastructure.Configurations
         /// <summary>
         /// Initializes a new instance of the <see cref="SqlConnectionFactory"/> class.
         /// </summary>
-        /// <param name="configuration">Application configuration settings.</param>
+        /// <param name="configuration">Application configuration settings used to retrieve connection strings.</param>
+        /// <remarks>
+        /// The constructor takes the application's configuration to retrieve the appropriate connection string
+        /// for either SQL Server or PostgreSQL or any databases depending on the `ConnectionStringType` set.
+        /// </remarks>
         public SqlConnectionFactory(IConfiguration configuration)
         {
             _configuration = configuration;
@@ -30,28 +39,21 @@ namespace WebApiTemplate.Infrastructure.Configurations
         /// Gets an open database connection. If a connection is already open, it returns that.
         /// </summary>
         /// <returns>An open <see cref="IDbConnection"/> instance.</returns>
+        /// <remarks>
+        /// If no connection is open or the current connection is closed, this method creates a new connection
+        /// based on the selected <see cref="ConnectionStringType"/> and opens it.
+        /// </remarks>
         public IDbConnection GetOpenConnection()
         {
             if (_connection == null || _connection.State != ConnectionState.Open)
             {
-                switch (_connectionStringType)
+                _connection = _connectionStringType switch
                 {
-                    case ConnectionStringType.PostgresqlConnection:
-                        _connection = new NpgsqlConnection(_configuration.GetConnectionString("PostgresqlConnection"));
-                        break;
-
-                    case ConnectionStringType.SqlServerConnection:
-                        _connection = new SqlConnection(_configuration.GetConnectionString("SqlServerConnection"));
-                        break;
-
-                    case ConnectionStringType.DefaultConnection:
-                        _connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-                        break;
-
-                    default:
-                        _connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-                        break;
-                }
+                    ConnectionStringType.PostgreSqlConnection => new NpgsqlConnection(_configuration.GetConnectionString(nameof(ConnectionStringType.PostgreSqlConnection))),
+                    ConnectionStringType.SqlServerConnection => new SqlConnection(_configuration.GetConnectionString(nameof(ConnectionStringType.SqlServerConnection))),
+                    ConnectionStringType.DefaultConnection => new SqlConnection(_configuration.GetConnectionString(nameof(ConnectionStringType.DefaultConnection))),
+                    _ => new SqlConnection(_configuration.GetConnectionString(nameof(ConnectionStringType.DefaultConnection))),
+                };
 
                 _connection.Open();
             }
@@ -63,53 +65,49 @@ namespace WebApiTemplate.Infrastructure.Configurations
         /// Creates a new database connection without opening it.
         /// </summary>
         /// <returns>A new instance of <see cref="IDbConnection"/>.</returns>
+        /// <remarks>
+        /// This method creates a new database connection based on the selected <see cref="ConnectionStringType"/>
+        /// but does not open it. The caller can choose when to open the connection.
+        /// </remarks>
         public IDbConnection GetNewConnection()
         {
-            switch (_connectionStringType)
+            return _connectionStringType switch
             {
-                case ConnectionStringType.PostgresqlConnection:
-                    return new NpgsqlConnection(_configuration.GetConnectionString("PostgresqlConnection"));
-
-                case ConnectionStringType.SqlServerConnection:
-                    return new SqlConnection(_configuration.GetConnectionString("SqlServerConnection"));
-
-                case ConnectionStringType.DefaultConnection:
-                    return new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-
-                default:
-                    return new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-            }
+                ConnectionStringType.PostgreSqlConnection => new NpgsqlConnection(_configuration.GetConnectionString(nameof(ConnectionStringType.PostgreSqlConnection))),
+                ConnectionStringType.SqlServerConnection => new SqlConnection(_configuration.GetConnectionString(nameof(ConnectionStringType.SqlServerConnection))),
+                ConnectionStringType.DefaultConnection => new SqlConnection(_configuration.GetConnectionString(nameof(ConnectionStringType.DefaultConnection))),
+                _ => new SqlConnection(_configuration.GetConnectionString(nameof(ConnectionStringType.DefaultConnection))),
+            };
         }
 
         /// <summary>
         /// Retrieves the current database connection string and its type.
         /// </summary>
         /// <returns>A tuple containing the connection string and the database type.</returns>
+        /// <remarks>
+        /// This method returns both the current connection string and the type of database connection (SQL Server or PostgreSQL)
+        /// based on the selected <see cref="ConnectionStringType"/>.
+        /// </remarks>
         public (string? connectionString, ConnectionStringType dbType) GetConnectionStringAndDbType()
         {
-            switch (_connectionStringType)
+            return _connectionStringType switch
             {
-                case ConnectionStringType.DefaultConnection:
-                    return (_configuration.GetConnectionString("DefaultConnection"), ConnectionStringType.DefaultConnection);
-
-                case ConnectionStringType.SqlServerConnection:
-                    return (_configuration.GetConnectionString("SqlServerConnection"), ConnectionStringType.SqlServerConnection);
-
-                case ConnectionStringType.PostgresqlConnection:
-                    return (_configuration.GetConnectionString("PostgresqlConnection"), ConnectionStringType.PostgresqlConnection);
-
-                case ConnectionStringType.None:
-                    return (string.Empty, ConnectionStringType.None);
-
-                default:
-                    return default;
-            }
+                ConnectionStringType.DefaultConnection => (_configuration.GetConnectionString(nameof(ConnectionStringType.DefaultConnection)), ConnectionStringType.DefaultConnection),
+                ConnectionStringType.SqlServerConnection => (_configuration.GetConnectionString(nameof(ConnectionStringType.SqlServerConnection)), ConnectionStringType.SqlServerConnection),
+                ConnectionStringType.PostgreSqlConnection => (_configuration.GetConnectionString(nameof(ConnectionStringType.PostgreSqlConnection)), ConnectionStringType.PostgreSqlConnection),
+                ConnectionStringType.None => (string.Empty, ConnectionStringType.None),
+                _ => default,
+            };
         }
 
         /// <summary>
         /// Sets the connection string type (e.g., SQL Server, PostgreSQL) <see cref="ConnectionStringType"/>.
         /// </summary>
-        /// <param name="connectionStringType">The database type to use.</param>
+        /// <param name="connectionStringType">The database type to use for creating a connection.</param>
+        /// <remarks>
+        /// This method allows the caller to set the connection string type, which can be used in subsequent calls
+        /// to retrieve the appropriate database connection (either SQL Server or PostgreSQL).
+        /// </remarks>
         public void SetConnectionStringType(ConnectionStringType connectionStringType)
         {
             _connectionStringType = connectionStringType;
@@ -118,6 +116,10 @@ namespace WebApiTemplate.Infrastructure.Configurations
         /// <summary>
         /// Releases database connections properly to prevent memory leaks.
         /// </summary>
+        /// <remarks>
+        /// This method ensures that database connections are disposed of properly when no longer needed,
+        /// releasing unmanaged resources to avoid memory leaks or connection pool issues.
+        /// </remarks>
         public void Dispose()
         {
             Dispose(true);
@@ -128,6 +130,10 @@ namespace WebApiTemplate.Infrastructure.Configurations
         /// Disposes of the database connection if it is open.
         /// </summary>
         /// <param name="disposing">Indicates whether to dispose managed resources.</param>
+        /// <remarks>
+        /// This method is called from <see cref="Dispose()"/> to clean up any resources associated with the
+        /// database connection when the object is disposed of.
+        /// </remarks>
         protected virtual void Dispose(bool disposing)
         {
             if (_disposed)

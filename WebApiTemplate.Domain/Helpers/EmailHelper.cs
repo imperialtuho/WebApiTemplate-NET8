@@ -15,41 +15,51 @@ namespace WebApiTemplate.Domain.Helpers
         /// <param name="code">The two-factor authentication code to send.</param>
         /// <returns>True if the email was sent successfully; otherwise, false.</returns>
         /// <exception cref="InvalidOperationException">Thrown if the email address is null or empty.</exception>
-
+        /// <exception cref="SmtpException">Thrown if there is an error sending the email via SMTP.</exception>
         public static bool SendEmailTwoFactorCode(string? userEmail, string code)
         {
+            // Validate input parameters
             if (string.IsNullOrEmpty(userEmail))
             {
                 throw new InvalidOperationException($"{nameof(userEmail)} is null or empty.");
             }
 
+            // Create the email message
             var mailMessage = new MailMessage
             {
-                From = new MailAddress("imperialtuho-admin@test.com")
+                From = new MailAddress("imperialtuho-admin@test.com"),
+                Subject = "Two Factor Code",
+                IsBodyHtml = true,
+                Body = code
             };
 
+            // Add the recipient email address
             mailMessage.To.Add(new MailAddress(userEmail));
 
-            mailMessage.Subject = "Two Factor Code";
-            mailMessage.IsBodyHtml = true;
-            mailMessage.Body = code;
-
+            // Configure the SMTP client
             var client = new SmtpClient("sandbox.smtp.mailtrap.io", 2525)
             {
                 Credentials = new NetworkCredential("b3763ec6ff4b9d", "0e581a05dbec85"),
                 EnableSsl = true
             };
-            client.Credentials = new NetworkCredential("b3763ec6ff4b9d", "0e581a05dbec85");
 
             try
             {
+                // Send the email
                 client.Send(mailMessage);
-                return true;
+                return true; // Return true if the email was sent successfully
+            }
+            catch (SmtpException ex)
+            {
+                // Log the SMTP exception details
+                Console.WriteLine($"SMTP error: {ex.Message}");
+                return false; // Return false if there was an error sending the email
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
-                return false;
+                // Log any other exceptions
+                Console.WriteLine($"Unexpected error: {ex.Message}");
+                return false; // Return false for unexpected errors
             }
         }
     }

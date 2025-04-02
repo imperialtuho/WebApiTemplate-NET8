@@ -1,18 +1,17 @@
-﻿using WebApiTemplate.Application.Dtos.Base;
-using WebApiTemplate.Application.Dtos.Media;
+﻿using WebApiTemplate.Application.Dtos;
 using WebApiTemplate.Domain.Common;
 
 namespace WebApiTemplate.Application.Interfaces.Services
 {
     public interface IExampleService
     {
-        Task<PaginatedResponse<BaseDto>> SearchAsync(SearchRequest request);
+        Task<PaginatedResponse<ExampleDto>> SearchAsync(SearchRequest request);
 
-        Task<BaseDto> GetByIdAsync(string id);
+        Task<ExampleDto> GetByIdAsync(string id);
 
-        Task<BaseDto> CreateAsync(MediaAddRequest request);
+        Task<ExampleDto> CreateAsync(object request);
 
-        Task<BaseDto> UpdateAsync(MediaUpdateRequest request);
+        Task<ExampleDto> UpdateAsync(object request);
 
         Task<bool> DeleteAsync(string id);
     }

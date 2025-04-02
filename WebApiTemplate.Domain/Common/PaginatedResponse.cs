@@ -46,12 +46,18 @@ namespace WebApiTemplate.Domain.Common
         public bool HasNextPage => PageNumber < TotalPages;
 
         /// <summary>
-        /// Creates a paginated response asynchronously from an IQueryable data source.
+        /// Asynchronously creates a paginated response from a queryable data source.
         /// </summary>
-        /// <param name="source">The queryable data source.</param>
-        /// <param name="pageNumber">The page number to retrieve.</param>
-        /// <param name="pageSize">The number of items per page.</param>
-        /// <returns>A task representing the asynchronous operation, with a paginated response as the result.</returns>
+        /// <param name="source">The queryable data source containing the items to paginate.</param>
+        /// <param name="pageNumber">The page number to retrieve, starting from 1.</param>
+        /// <param name="pageSize">The number of items to include per page.</param>
+        /// <returns>A task representing the asynchronous operation, with a <see cref="PaginatedResponse{TResponse}"/> as the result.</returns>
+        /// <remarks>
+        /// This method calculates the total number of items in the source, then retrieves the appropriate subset of items
+        /// for the requested page using pagination logic. The result is wrapped in a <see cref="PaginatedResponse{TResponse}"/>
+        /// object, which includes both the data and metadata such as the total number of pages, total count of items, and
+        /// navigation properties for pagination (e.g., whether there are previous or next pages).
+        /// </remarks>
         public static async Task<PaginatedResponse<TResponse>> CreateAsync(IQueryable<TResponse> source, int pageNumber, int pageSize)
         {
             int count = await source.CountAsync();
