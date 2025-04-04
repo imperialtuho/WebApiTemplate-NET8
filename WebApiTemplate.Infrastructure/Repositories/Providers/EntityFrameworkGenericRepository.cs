@@ -35,36 +35,18 @@ namespace WebApiTemplate.Infrastructure.Repositories.Providers
         protected readonly ISqlConnectionFactory _sqlConnectionFactory;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<EntityFrameworkGenericRepository<C, T>> _logger;
-        private UserSession? _userSession;
-        private readonly string DefaultModifier = "Site Administrators";
 
         /// <summary>
-        /// Retrieves the user session from the HTTP context.
-        /// This session contains information such as the user's identity and associated tenant ID.
+        /// Retrieves the current user session associated with the active HTTP request.
         /// </summary>
-        /// <value>The user session object, which contains the tenant ID and user details.</value>
-        public UserSession? LoginSession
-        {
-            get => _userSession ?? _httpContextAccessor?.GetUserSession();
-            set
-            {
-                _userSession = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets the tenant ID from the logged-in session or HTTP context.
-        /// This is used for multi-tenancy scenarios to segregate data by tenant.
-        /// </summary>
-        /// <value>The tenant ID if available; otherwise, returns a default tenant ID.</value>
-        public int? TenantId => LoginSession?.TenantId ?? TenantIdentify;
-
-        /// <summary>
-        /// Retrieves the tenant identifier from the HTTP context.
-        /// If no tenant information is available, a default tenant ID is used.
-        /// </summary>
-        /// <value>The tenant ID or <see cref="DefaultTenantId"/> if no tenant is found.</value>
-        private int? TenantIdentify => _httpContextAccessor.GetTenantIdentify() ?? DefaultTenantId;
+        /// <value>
+        /// Returns an instance of <see cref="UserSession"/> containing information about the authenticated user.
+        /// </value>
+        /// <remarks>
+        /// This property provides access to user-specific session data extracted from the HTTP context,
+        /// typically used for authentication, authorization, or auditing purposes.
+        /// </remarks>
+        protected UserSession LoginSession => _httpContextAccessor.GetUserSession();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EntityFrameworkGenericRepository{C, T}"/> class.
@@ -144,13 +126,17 @@ namespace WebApiTemplate.Infrastructure.Repositories.Providers
         /// </summary>
         /// <param name="entities">The collection of entities to be added.</param>
         /// <returns>
-        /// A task that represents the asynchronous operation. The task result is <c>true</c> if the operation was successful;
+        /// A task that represents the asynchronous operation. The task result is <c>true</c> if at least one entity was successfully added;
         /// otherwise, <c>false</c>.
         /// </returns>
         /// <remarks>
-        /// This method adds multiple entities to the database context and commits the changes immediately.
+        /// This method inserts multiple entities into the database context and commits the changes immediately.
         /// If the save operation fails, it may result in a partial or unsuccessful transaction.
+        /// After saving, each entity's state is set to <see cref="EntityState.Unchanged"/> to prevent unintended modifications.
         /// </remarks>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown if the provided collection is null or empty, as at least one entity is required.
+        /// </exception>
         public async Task<bool> AddRangeAndSaveChangesAsync(IEnumerable<T> entities)
         {
             if (entities == null || !entities.Any())
@@ -194,17 +180,21 @@ namespace WebApiTemplate.Infrastructure.Repositories.Providers
         }
 
         /// <summary>
-        /// Adds a collection of entities to the database, saves changes immediately, and returns the added entities.
+        /// Adds a collection of entities to the database, commits the changes immediately, and returns the added entities.
         /// </summary>
         /// <param name="entities">The collection of entities to be added.</param>
         /// <returns>
-        /// A task that represents the asynchronous operation. The task result contains a list of the added entities,
+        /// A task representing the asynchronous operation. The task result contains a list of the added entities,
         /// including any database-generated values such as primary keys.
         /// </returns>
         /// <remarks>
-        /// This method adds multiple entities to the database context, commits the changes immediately,
-        /// and returns the entities with any automatically generated fields (e.g., IDs) populated.
+        /// This method inserts multiple entities into the database context and immediately saves the changes.
+        /// After saving, the entities are returned with any automatically generated fields (e.g., primary keys) populated.
+        /// Each entity's state is set to <see cref="EntityState.Unchanged"/> to prevent unintended modifications after saving.
         /// </remarks>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown if the provided collection is null or empty, as at least one entity is required.
+        /// </exception>
         public async Task<IList<T>> AddRangeWithSaveChangesAndReturnModelsAsync(IEnumerable<T> entities)
         {
             if (entities == null || !entities.Any())
@@ -542,16 +532,16 @@ namespace WebApiTemplate.Infrastructure.Repositories.Providers
         private void InitializeEntity(T entity)
         {
             entity.Id = Guid.NewGuid().ToString();
-            entity.TenantId = TenantId;
+            entity.TenantId = LoginSession.TenantId;
 
             if (string.IsNullOrEmpty(entity.CreatedBy))
             {
-                entity.CreatedBy = LoginSession?.Email ?? DefaultModifier;
+                entity.CreatedBy = LoginSession.Email;
             }
 
             entity.CreatedDate = DateTime.UtcNow;
-            entity.ModifiedDate = null;
-            entity.ModifiedBy = null;
+            entity.ModifiedDate = DateTime.UtcNow;
+            entity.ModifiedBy = LoginSession.Email;
             entity.IsDeleted = false;
         }
 
@@ -564,7 +554,7 @@ namespace WebApiTemplate.Infrastructure.Repositories.Providers
         private void UpdateEntity(T entity)
         {
             entity.ModifiedDate = DateTime.UtcNow;
-            entity.ModifiedBy = LoginSession?.Email ?? DefaultModifier;
+            entity.ModifiedBy = LoginSession.Email;
         }
 
         /// <summary>
@@ -578,7 +568,7 @@ namespace WebApiTemplate.Infrastructure.Repositories.Providers
         {
             entity.IsDeleted = true;
             entity.ModifiedDate = DateTime.UtcNow;
-            entity.ModifiedBy = LoginSession?.Email ?? DefaultModifier;
+            entity.ModifiedBy = LoginSession.Email;
         }
 
         /// <summary>

@@ -1,5 +1,6 @@
 ﻿using Asp.Versioning;
 using WebApiTemplate.Application.Interfaces.Services;
+using WebApiTemplate.Domain.Common;
 using WebApiTemplate.Domain.Helpers;
 
 namespace WebApiTemplate.Api.Controllers
@@ -16,13 +17,21 @@ namespace WebApiTemplate.Api.Controllers
     public class ExampleController(IExampleService exampleService) : BaseController
     {
         /// <summary>
-        /// Retrieves example data for API version 1.0.
+        /// Retrieves example data for API version 1.0, demonstrating AES encryption and decryption.
         /// </summary>
         /// <returns>
-        /// Returns example data specific to API v1.0.
+        /// Returns an <see cref="IActionResult"/> containing example data specific to API v1.0.
+        /// The response follows HTTP status codes, returning <see cref="HttpStatusCode.OK"/> when successful.
         /// </returns>
         /// <remarks>
-        /// This method demonstrates AES encryption and decryption before returning the response.
+        /// This method serves as an example of AES encryption and decryption. It performs the following operations:
+        /// <list type="bullet">
+        /// <item><description>Encrypts a plaintext message using AES encryption.</description></item>
+        /// <item><description>Validates the encrypted string to ensure it is a valid Base64 format.</description></item>
+        /// <item><description>Decrypts the encrypted message back to its original plaintext.</description></item>
+        /// <item><description>Verifies that the decrypted text matches the original plaintext.</description></item>
+        /// </list>
+        /// The final result is retrieved asynchronously from <see cref="IExampleService.GetByIdAsync"/> and returned in the response.
         /// </remarks>
         [HttpGet]
         [MapToApiVersion("1.0")]
@@ -45,16 +54,26 @@ namespace WebApiTemplate.Api.Controllers
         }
 
         /// <summary>
-        /// Retrieves example data for API version 2.0.
+        /// Retrieves a paginated list of filtered example data for API version 2.0.
         /// </summary>
+        /// <param name="searchRequest">
+        /// The search request containing filtering criteria and pagination parameters.
+        /// </param>
         /// <returns>
-        /// Returns example data specific to API v2.0.
+        /// Returns an <see cref="IActionResult"/> containing the filtered and paginated example data.
+        /// The response follows HTTP status codes, returning <see cref="HttpStatusCode.OK"/> when successful.
         /// </returns>
-        [HttpGet]
+        /// <remarks>
+        /// This endpoint processes search requests by applying dynamic filtering and pagination.
+        /// The filtering logic is based on the <see cref="FilterCriteria"/> provided in the request body,
+        /// allowing conditions such as equality, inequality, range comparisons, and string matching.
+        /// The pagination parameters, <c>PageNumber</c> and <c>PageSize</c>, determine the subset of data returned.
+        /// </remarks>
+        [HttpPost]
         [MapToApiVersion("2.0")]
-        public async Task<IActionResult> GetAsyncV2()
+        public async Task<IActionResult> GetAsyncV2([FromBody] SearchRequest searchRequest)
         {
-            return Result(await exampleService.GetByIdAsync(string.Empty), HttpStatusCode.OK);
+            return Result(await exampleService.SearchAsync(searchRequest), HttpStatusCode.OK);
         }
     }
 }

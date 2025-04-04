@@ -1,9 +1,28 @@
-﻿namespace WebApiTemplate.Domain.Enums;
-
-public enum ConnectionStringType
+﻿namespace WebApiTemplate.Domain.Enums
 {
-    None = 0,
-    DefaultConnection = 1,
-    SqlServerConnection = 2,
-    PostgreSqlConnection = 3
+    /// <summary>
+    /// Enum representing the different types of connection strings used in the application.
+    /// </summary>
+    public enum ConnectionStringType
+    {
+        /// <summary>
+        /// No specific connection string type.
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        /// The default connection string type.
+        /// </summary>
+        DefaultConnection = 1,
+
+        /// <summary>
+        /// Represents a SQL Server connection string.
+        /// </summary>
+        SqlServerConnection = 2,
+
+        /// <summary>
+        /// Represents a PostgreSQL connection string.
+        /// </summary>
+        PostgreSqlConnection = 3
+    }
 }

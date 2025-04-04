@@ -17,7 +17,6 @@ namespace WebApiTemplate.Application.Services
     /// </remarks>
     public class BaseService
     {
-        private UserSession? _userSession;
         protected readonly IHttpContextAccessor _httpContextAccessor;
         protected readonly IMapper _mapper;
 
@@ -33,32 +32,16 @@ namespace WebApiTemplate.Application.Services
         }
 
         /// <summary>
-        /// Gets the tenant identifier from the HTTP context. This value may come from the HTTP headers or another source.
+        /// Retrieves the current user session associated with the active HTTP request.
         /// </summary>
-        /// <value>The tenant identifier, or null if not available.</value>
+        /// <value>
+        /// Returns an instance of <see cref="UserSession"/> containing information about the authenticated user.
+        /// </value>
         /// <remarks>
-        /// This property retrieves the tenant identifier, which is typically used to isolate data for multi-tenant applications.
+        /// This property provides access to user-specific session data extracted from the HTTP context,
+        /// typically used for authentication, authorization, or auditing purposes.
         /// </remarks>
-        protected int? TenantIdentify => _httpContextAccessor.GetTenantIdentify();
-
-        /// <summary>
-        /// Gets the tenant ID, falling back to the tenant identification from the login session if the HTTP context tenant identifier is unavailable.
-        /// </summary>
-        /// <value>The tenant ID, or null if not available.</value>
-        public int? TenantId => LoginSession?.TenantId ?? TenantIdentify;
-
-        /// <summary>
-        /// Gets or sets the user session associated with the current request.
-        /// </summary>
-        /// <value>The user session, or null if not available.</value>
-        public UserSession? LoginSession
-        {
-            get => _userSession ?? _httpContextAccessor?.GetUserSession();
-            set
-            {
-                _userSession = value;
-            }
-        }
+        public UserSession LoginSession => _httpContextAccessor.GetUserSession();
 
         /// <summary>
         /// Checks if the action is being performed by an admin user.
@@ -95,19 +78,18 @@ namespace WebApiTemplate.Application.Services
         /// </remarks>
         protected void CheckingCurrentPerformingOperation(string? ownerId = null)
         {
-            UserSession? loginSession = LoginSession;
-            string message = $"You're not allowed to perform this action";
+            UserSession loginSession = LoginSession;
 
             // If the action is not performed by admins -> forbidden
             if (loginSession is null && !IsActionPerformByAdmin(loginSession))
             {
-                throw new ForbiddenException(message);
+                throw new ForbiddenException();
             }
 
             // If ownerId is specified, check if the current user owns the resource
             if (string.IsNullOrEmpty(ownerId) || !ownerId.Equals(loginSession?.UserId))
             {
-                throw new ForbiddenException(message);
+                throw new ForbiddenException();
             }
         }
     }

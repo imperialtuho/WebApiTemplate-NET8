@@ -20,6 +20,16 @@
         public string UserId { set; get; }
 
         /// <summary>
+        /// Gets or sets the email address of the user.
+        /// </summary>
+        /// <value>The user's email address.</value>
+        /// <remarks>
+        /// The email address is typically used for user authentication and communication purposes.
+        /// It can also be used for identity verification or notifications.
+        /// </remarks>
+        public string Email { get; set; }
+
+        /// <summary>
         /// Gets or sets the list of roles associated with the user.
         /// </summary>
         /// <value>A list of role names that the user belongs to.</value>
@@ -42,21 +52,9 @@
         /// <summary>
         /// Gets or sets the identifier for the tenant to which the user belongs.
         /// </summary>
-        /// <value>The tenant identifier, or null if the user is not associated with any tenant.</value>
         /// <remarks>
         /// TenantId is used in multi-tenant applications to associate users with a specific tenant context.
-        /// If null, the user is assumed to not belong to any tenant.
         /// </remarks>
-        public int? TenantId { get; set; }
-
-        /// <summary>
-        /// Gets or sets the email address of the user.
-        /// </summary>
-        /// <value>The user's email address.</value>
-        /// <remarks>
-        /// The email address is typically used for user authentication and communication purposes.
-        /// It can also be used for identity verification or notifications.
-        /// </remarks>
-        public string? Email { get; set; }
+        public int TenantId { get; set; }
     }
 }

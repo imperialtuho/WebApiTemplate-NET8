@@ -30,9 +30,9 @@
         /// <summary>
         /// Gets or sets the tenant identifier for multi-tenancy support.
         /// </summary>
-        /// <value>The tenant identifier, or null if not applicable.</value>
+        /// <value>The tenant identifier.</value>
         /// <remarks>
-        /// This property is used for applications that support multi-tenancy. If the application is not multi-tenant, this field can be null.
+        /// This property is used for applications that support multi-tenancy.
         /// </remarks>
         public int? TenantId { get; set; }
 

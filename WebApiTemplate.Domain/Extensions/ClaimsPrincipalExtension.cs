@@ -34,17 +34,14 @@ namespace WebApiTemplate.Domain.Extensions
             string? userEmail = claimsPrincipal.FindFirstValue(ClaimTypes.Name);
             string? userId = claimsPrincipal.FindFirstValue(ClaimTypes.Sid);
 
-            // Retrieve tenant ID from claims (default to "0" if not present)
-            string? tenantIdStr = claimsPrincipal.FindFirstValue(TenantIdClaim) ?? "0";
-
-            // Return an empty session if user ID is missing
-            if (string.IsNullOrWhiteSpace(userId))
+            // Return an empty session if user ID or Email is missing
+            if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(userEmail))
             {
                 return new UserSession();
             }
 
-            // Parse tenant ID string to integer
-            int tenantId = int.TryParse(tenantIdStr, out int parsedTenantId) ? parsedTenantId : 0;
+            // Parse and retrieve tenant ID from claims (default to "0" if not present)
+            int tenantId = int.TryParse(claimsPrincipal.FindFirstValue(TenantIdClaim), out int parsedTenantId) ? parsedTenantId : 0;
 
             // Retrieve roles and permissions
             List<string> roles = claimsPrincipal.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
@@ -53,8 +50,8 @@ namespace WebApiTemplate.Domain.Extensions
             // Return a populated UserSession object
             return new UserSession
             {
-                Email = userEmail,
                 UserId = userId,
+                Email = userEmail,
                 Roles = roles,
                 Permissions = permissions,
                 TenantId = tenantId
