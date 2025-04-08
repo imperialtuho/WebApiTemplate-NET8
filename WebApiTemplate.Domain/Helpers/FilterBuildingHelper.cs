@@ -16,16 +16,16 @@ namespace WebApiTemplate.Domain.Helpers
     /// The filtering logic utilizes <see cref="Expression"/> to dynamically build
     /// predicate expressions for filtering in LINQ queries.
     /// </remarks>
-    public class FilterBuilder<T>
+    public class FilterBuildingHelper<T>
     {
         private readonly List<FilterCriteria> _filters;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FilterBuilder{T}"/> class with a set of filter criteria.
+        /// Initializes a new instance of the <see cref="FilterBuildingHelper{T}"/> class with a set of filter criteria.
         /// </summary>
         /// <param name="filters">A list of <see cref="FilterCriteria"/> defining the filtering conditions.</param>
         /// <exception cref="ArgumentNullException">Thrown when the <paramref name="filters"/> list is null.</exception>
-        public FilterBuilder(List<FilterCriteria> filters)
+        public FilterBuildingHelper(List<FilterCriteria> filters)
         {
             _filters = filters ?? throw new ArgumentNullException(nameof(filters), message: "Filters cannot be null.");
         }

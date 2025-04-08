@@ -6,7 +6,7 @@ namespace WebApiTemplate.Domain.Common
     /// Represents a filtering condition used in dynamic LINQ queries.
     /// </summary>
     /// <remarks>
-    /// This class is typically used by <see cref="Helpers.FilterBuilder{T}"/> to construct expressions based on dynamic filtering logic.
+    /// This class is typically used by <see cref="Helpers.FilterBuildingHelper{T}"/> to construct expressions based on dynamic filtering logic.
     /// The <see cref="Field"/> represents the property to filter on, while the <see cref="Operator"/> determines the type of comparison.
     /// The <see cref="Value"/> and <see cref="Value2"/> hold the values used for comparison, with <see cref="Value2"/> being optional for "between" filters.
     /// The <see cref="CaseSensitive"/> flag determines whether the filter should apply case-sensitive comparisons for string values.

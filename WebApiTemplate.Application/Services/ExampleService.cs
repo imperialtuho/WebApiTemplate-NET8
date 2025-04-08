@@ -33,7 +33,7 @@ namespace WebApiTemplate.Application.Services
             IQueryable<ExampleDto>? products = ProductInitialize().AsQueryable();
 
             // Step 2: Use the FilterBuilder to apply the filters
-            FilterBuilder<ExampleDto>? filterBuilder = new(request.Filters ?? []);
+            FilterBuildingHelper<ExampleDto>? filterBuilder = new(request.Filters ?? []);
             Func<IQueryable<ExampleDto>, IQueryable<ExampleDto>>? filterExpression = filterBuilder.Build();
             IQueryable<ExampleDto> filteredProducts = filterExpression(products);
 

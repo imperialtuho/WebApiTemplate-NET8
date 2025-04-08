@@ -30,7 +30,6 @@ namespace WebApiTemplate.Infrastructure.Repositories.Providers
         where T : BaseEntity<string>
         where C : DbContext
     {
-        protected const int DefaultTenantId = 0;
         protected readonly C _dbContext;
         protected readonly ISqlConnectionFactory _sqlConnectionFactory;
         private readonly IHttpContextAccessor _httpContextAccessor;
