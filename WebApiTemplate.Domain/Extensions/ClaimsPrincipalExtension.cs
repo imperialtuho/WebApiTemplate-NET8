@@ -11,7 +11,7 @@ namespace WebApiTemplate.Domain.Extensions
     public static class ClaimsPrincipalExtension
     {
         private const string Permission = nameof(Permission); // Constant for permission claim type
-        private const string TenantIdClaim = "tenantId"; // Constant for tenant ID claim type
+        private const string TenantIdClaim = "TenantId"; // Constant for tenant ID claim type
 
         /// <summary>
         /// Retrieves user session details from the <see cref="ClaimsPrincipal"/> object.
@@ -28,14 +28,14 @@ namespace WebApiTemplate.Domain.Extensions
         public static UserSession GetUserSession(this ClaimsPrincipal claimsPrincipal)
         {
             // Return an empty UserSession if claimsPrincipal is null
-            if (claimsPrincipal == null) return new UserSession();
+            if (claimsPrincipal == null || !claimsPrincipal.Identity?.IsAuthenticated == true) return new UserSession();
 
             // Retrieve the user's email and user ID from the claims
-            string? userEmail = claimsPrincipal.FindFirstValue(ClaimTypes.Name);
+            string? email = claimsPrincipal.FindFirstValue(ClaimTypes.Name);
             string? userId = claimsPrincipal.FindFirstValue(ClaimTypes.Sid);
 
             // Return an empty session if user ID or Email is missing
-            if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(userEmail))
+            if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(email))
             {
                 return new UserSession();
             }
@@ -51,7 +51,7 @@ namespace WebApiTemplate.Domain.Extensions
             return new UserSession
             {
                 UserId = userId,
-                Email = userEmail,
+                Email = email,
                 Roles = roles,
                 Permissions = permissions,
                 TenantId = tenantId

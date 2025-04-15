@@ -44,53 +44,52 @@ namespace WebApiTemplate.Application.Services
         public UserSession LoginSession => _httpContextAccessor.GetUserSession();
 
         /// <summary>
-        /// Checks if the action is being performed by an admin user.
+        /// Determines whether the action is performed by an admin user.
         /// </summary>
-        /// <param name="currentUser">The current user session to check. If null, it assumes a non-admin user.</param>
-        /// <returns>True if the current user is an admin, otherwise false.</returns>
+        /// <param name="currentUser">The current user session. If null, assumes a non-admin user.</param>
+        /// <param name="tenantId">Optional tenant ID to check admin scope.</param>
+        /// <returns>True if the user is a SuperAdmin or an Admin in the specified tenant; otherwise, false.</returns>
         /// <remarks>
-        /// This method checks if the current user session has roles that include either 'SuperAdmin' or 'Admin'.
-        /// If no user session is provided, it defaults to returning false.
+        /// A user is considered an admin if they have the 'SuperAdmin' role, or the 'Admin' role within the same tenant.
         /// </remarks>
-        protected static bool IsActionPerformByAdmin(UserSession? currentUser = null)
+        protected static bool IsActionPerformedByAdmin(UserSession? currentUser = null, int? tenantId = null)
         {
-            if (currentUser is null)
-            {
+            if (currentUser is null || currentUser.Roles is null)
                 return false;
-            }
 
-            if (currentUser.Roles is not null && currentUser.Roles.Exists(r => r.Contains(ApplicationDefaultRoleValue.SuperAdmin) || r.Contains(ApplicationDefaultRoleValue.Admin)))
-            {
+            // Check SuperAdmin role
+            if (currentUser.Roles.Any(r => r == ApplicationDefaultRoleValue.SuperAdmin))
                 return true;
-            }
+
+            // Check Admin role with matching tenant
+            if (currentUser.Roles.Any(r => r == ApplicationDefaultRoleValue.Admin) && currentUser.TenantId == tenantId)
+                return true;
 
             return false;
         }
 
         /// <summary>
-        /// Checks if the current operation is allowed based on ownership and user roles.
+        /// Validates whether the current user is authorized to perform an operation based on role or ownership.
         /// </summary>
-        /// <param name="ownerId">The owner ID of the resource being accessed. If null, the method checks if the current user owns the resource.</param>
-        /// <exception cref="ForbiddenException">Thrown if the current user is not allowed to perform the action.</exception>
+        /// <param name="ownerId">The ID of the resource owner.</param>
+        /// <param name="tenantId">The tenant ID to validate against for tenant-scoped admin access.</param>
+        /// <exception cref="ForbiddenException">Thrown when the user is unauthorized to perform the operation.</exception>
         /// <remarks>
-        /// This method checks if the user performing the action is either an admin or the owner of the resource.
-        /// If neither condition is true, a <see cref="ForbiddenException"/> is thrown to prevent unauthorized actions.
+        /// An action is allowed if the user is a SuperAdmin, an Admin within the same tenant, or the resource owner.
         /// </remarks>
-        protected void CheckingCurrentPerformingOperation(string? ownerId = null)
+        protected void CheckingCurrentPerformingOperation(string? ownerId = null, int? tenantId = null)
         {
-            UserSession loginSession = LoginSession;
+            UserSession? loginSession = LoginSession ?? throw new ForbiddenException();
 
-            // If the action is not performed by admins -> forbidden
-            if (loginSession is null && !IsActionPerformByAdmin(loginSession))
-            {
-                throw new ForbiddenException();
-            }
+            // Admin check
+            if (IsActionPerformedByAdmin(loginSession, tenantId))
+                return;
 
-            // If ownerId is specified, check if the current user owns the resource
-            if (string.IsNullOrEmpty(ownerId) || !ownerId.Equals(loginSession?.UserId))
-            {
-                throw new ForbiddenException();
-            }
+            // Ownership check
+            if (!string.IsNullOrEmpty(ownerId) && loginSession.UserId == ownerId && loginSession.TenantId == tenantId)
+                return;
+
+            throw new ForbiddenException();
         }
     }
 }

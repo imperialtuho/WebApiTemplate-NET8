@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
+using System.Text.Json.Serialization;
 using WebApiTemplate.Api.Extensions;
 using WebApiTemplate.Api.Middlewares.Authentication;
 using WebApiTemplate.Api.Middlewares.ExceptionHandler;
@@ -82,7 +83,13 @@ namespace WebApiTemplate.Api
             services.AddAuthenticationServices(configuration);
 
             // Adds Controllers and API Explorer
-            services.AddControllers();
+            services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+                    options.JsonSerializerOptions.PropertyNamingPolicy = null; // Disable camelCase -> return property case.
+                    options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+                });
             services.AddEndpointsApiExplorer();
 
             // Configures Swagger (OpenAPI)

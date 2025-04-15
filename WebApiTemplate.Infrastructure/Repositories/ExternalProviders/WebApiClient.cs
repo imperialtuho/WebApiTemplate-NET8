@@ -79,7 +79,7 @@ namespace WebApiTemplate.Infrastructure.Repositories.ExternalProviders
         {
             using HttpClient? httpClient = _httpClientFactory.CreateClient();
 
-            using var request = new HttpRequestMessage(method, requestUri);
+            using HttpRequestMessage? request = new HttpRequestMessage(method, requestUri);
 
             jsonOptions ??= _defaultJsonOptions;
 
@@ -177,8 +177,8 @@ namespace WebApiTemplate.Infrastructure.Repositories.ExternalProviders
 
             if (data.TrimStart().StartsWith('<'))
             {
-                var serializer = new XmlSerializer(typeof(T));
-                using var stream = new MemoryStream(Encoding.UTF8.GetBytes(data));
+                XmlSerializer serializer = new XmlSerializer(typeof(T));
+                using MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(data));
                 return (T?)serializer.Deserialize(stream);
             }
 
@@ -195,8 +195,8 @@ namespace WebApiTemplate.Infrastructure.Repositories.ExternalProviders
         /// </remarks>
         private static string SerializeToXml(object content)
         {
-            var serializer = new XmlSerializer(content.GetType());
-            using var stream = new StringWriter();
+            XmlSerializer serializer = new XmlSerializer(content.GetType());
+            using StringWriter stream = new StringWriter();
             serializer.Serialize(stream, content);
 
             return stream.ToString();

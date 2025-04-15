@@ -30,7 +30,7 @@ namespace WebApiTemplate.Application.Services
         {
             _ = LoginSession ?? throw new ForbiddenException();
             // Step 1: Create a list of products
-            IQueryable<ExampleDto>? products = ProductInitialize().AsQueryable();
+            IQueryable<ExampleDto>? products = ExampleProductsInitializer().AsQueryable();
 
             // Step 2: Use the FilterBuilder to apply the filters
             FilterBuildingHelper<ExampleDto>? filterBuilder = new(request.Filters ?? []);
@@ -48,7 +48,7 @@ namespace WebApiTemplate.Application.Services
             throw new NotImplementedException();
         }
 
-        private static List<ExampleDto> ProductInitialize()
+        private static List<ExampleDto> ExampleProductsInitializer()
         {
             return new List<ExampleDto>
             {
@@ -57,8 +57,8 @@ namespace WebApiTemplate.Application.Services
                 new () { Id = "3", Name = "Shirt",      Price = 25,     Category = "Clothing",      CreatedDate = new DateTime(2025, 3, 3,0,0,0, DateTimeKind.Utc) },
                 new () { Id = "4", Name = "Headphones", Price = 200,    Category = "Electronics",   CreatedDate = new DateTime(2025, 4, 4,0,0,0, DateTimeKind.Utc) },
                 new () { Id = "5", Name = "Pants",      Price = 30,     Category = "Clothing",      CreatedDate = new DateTime(2025, 5, 5,0,0,0, DateTimeKind.Utc) },
-                new () { Id = "6", Name = "Laptop",     Price = 1000,   Category = "Electronics",   CreatedDate = new DateTime(2025, 5, 5,0,0,0, DateTimeKind.Utc) },
-                new () { Id = "7", Name = "Rooftop",    Price = 1000,   Category = "Electronics",   CreatedDate = new DateTime(2025, 5, 5,0,0,0, DateTimeKind.Utc) }
+                new () { Id = "6", Name = "Laptop",     Price = 1000,   Category = "Electronics",   CreatedDate = new DateTime(2025, 6, 6,0,0,0, DateTimeKind.Utc) },
+                new () { Id = "7", Name = "Rooftop",    Price = 1000,   Category = "Electronics",   CreatedDate = new DateTime(2025, 7, 7,0,0,0, DateTimeKind.Utc) }
             };
         }
     }
