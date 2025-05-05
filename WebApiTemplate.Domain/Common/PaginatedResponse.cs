@@ -59,7 +59,7 @@ namespace WebApiTemplate.Domain.Common
         /// A task representing the asynchronous operation, with a <see cref="PaginatedResponse{TResponse}"/> as the result.
         /// </returns>
         /// <remarks>
-        /// This method executes database queries asynchronously using Entity Framework Core's <c>CountAsync()</c> 
+        /// This method executes database queries asynchronously using Entity Framework Core's <c>CountAsync()</c>
         /// and <c>ToListAsync()</c>. It does not support in-memory collections (e.g., <c>List{T}.AsQueryable()</c>).
         /// </remarks>
         public static async Task<PaginatedResponse<TResponse>> CreateAsync(IQueryable<TResponse> source, int pageNumber, int pageSize)
@@ -82,7 +82,7 @@ namespace WebApiTemplate.Domain.Common
         /// </returns>
         /// <remarks>
         /// This method retrieves a subset of data from the source collection based on the specified pagination parameters.
-        /// It calculates the total number of items and applies the appropriate <c>Skip()</c> and <c>Take()</c> operations to 
+        /// It calculates the total number of items and applies the appropriate <c>Skip()</c> and <c>Take()</c> operations to
         /// extract the requested page.
         /// </remarks>
         public static PaginatedResponse<TResponse> Create(IQueryable<TResponse> source, int pageNumber, int pageSize)

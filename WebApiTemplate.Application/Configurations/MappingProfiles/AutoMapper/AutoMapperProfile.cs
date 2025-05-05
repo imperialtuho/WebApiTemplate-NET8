@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using WebApiTemplate.Application.Dtos;
-using WebApiTemplate.Application.Dtos.Base;
 using WebApiTemplate.Domain.Entities;
 
 namespace WebApiTemplate.Application.Configurations.MappingProfiles.AutoMapper
