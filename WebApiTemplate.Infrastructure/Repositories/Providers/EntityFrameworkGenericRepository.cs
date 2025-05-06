@@ -78,6 +78,7 @@ namespace WebApiTemplate.Infrastructure.Repositories.Providers
         /// </remarks>
         public async Task AddAsync(T entity)
         {
+            ArgumentNullException.ThrowIfNull(entity);
             InitializeEntity(entity);
             await _dbContext.Set<T>().AddAsync(entity);
         }
@@ -112,6 +113,7 @@ namespace WebApiTemplate.Infrastructure.Repositories.Providers
         /// </remarks>, otherwise false.</returns>
         public virtual async Task<bool> AddAndSaveChangesAsync(T entity)
         {
+            ArgumentNullException.ThrowIfNull(entity);
             InitializeEntity(entity);
             await _dbContext.Set<T>().AddAsync(entity);
             int result = await _dbContext.SaveChangesAsync();
@@ -170,6 +172,7 @@ namespace WebApiTemplate.Infrastructure.Repositories.Providers
         /// </remarks>
         public virtual async Task<T> AddWithSaveChangesAndReturnModelAsync(T entity)
         {
+            ArgumentNullException.ThrowIfNull(entity);
             InitializeEntity(entity);
             await _dbContext.Set<T>().AddAsync(entity);
             await _dbContext.SaveChangesAsync();

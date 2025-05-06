@@ -4,6 +4,7 @@ using WebApiTemplate.Application.Dtos;
 using WebApiTemplate.Application.Interfaces.Repositories;
 using WebApiTemplate.Application.Interfaces.Services;
 using WebApiTemplate.Domain.Common;
+using WebApiTemplate.Domain.Entities;
 using WebApiTemplate.Domain.Exceptions;
 using WebApiTemplate.Domain.Helpers;
 
@@ -11,9 +12,19 @@ namespace WebApiTemplate.Application.Services
 {
     public class ExampleService(IExampleRepository exampleRepository, IHttpContextAccessor httpContextAccessor, IMapper mapper) : BaseService(httpContextAccessor, mapper), IExampleService
     {
-        public Task<ExampleDto> CreateAsync(object request)
+        public async Task<ExampleDto> CreateAsync(ExampleDto? request)
         {
-            throw new NotImplementedException();
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request), "The request cannot be null.");
+            }
+
+            ExampleEntity? entity = _mapper.Map<ExampleEntity?>(request) ?? throw new InvalidOperationException("Mapping resulted in a null entity.");
+
+            entity.UserId = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? string.Empty;
+            ExampleEntity? savedEntity = await exampleRepository.AddWithSaveChangesAndReturnModelAsync(entity);
+
+            return _mapper.Map<ExampleDto>(savedEntity);
         }
 
         public Task<bool> DeleteAsync(string id)
@@ -43,7 +54,7 @@ namespace WebApiTemplate.Application.Services
             return Task.FromResult(result);
         }
 
-        public Task<ExampleDto> UpdateAsync(object request)
+        public Task<ExampleDto> UpdateAsync(ExampleDto request)
         {
             throw new NotImplementedException();
         }

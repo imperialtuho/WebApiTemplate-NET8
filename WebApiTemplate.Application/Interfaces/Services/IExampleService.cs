@@ -33,7 +33,7 @@ namespace WebApiTemplate.Application.Interfaces.Services
         /// <returns>
         /// A task that represents the asynchronous operation. The task result contains the <see cref="ExampleDto"/> for the newly created item.
         /// </returns>
-        Task<ExampleDto> CreateAsync(object request);
+        Task<ExampleDto> CreateAsync(ExampleDto? request);
 
         /// <summary>
         /// Updates an existing item based on the provided request data.
@@ -42,7 +42,7 @@ namespace WebApiTemplate.Application.Interfaces.Services
         /// <returns>
         /// A task that represents the asynchronous operation. The task result contains the updated <see cref="ExampleDto"/>.
         /// </returns>
-        Task<ExampleDto> UpdateAsync(object request);
+        Task<ExampleDto> UpdateAsync(ExampleDto request);
 
         /// <summary>
         /// Deletes an item by its unique identifier.

@@ -22,8 +22,8 @@ namespace WebApiTemplate.Application.Configurations.MappingProfiles.AutoMapper
         {
             // Define a simple mapping between ExampleEntity and ExampleDto, with reference preservation and reverse mapping.
             CreateMap<ExampleEntity, ExampleDto>()
-                .PreserveReferences()  // Ensures that object references are preserved during mapping, useful for cyclic references.
-                .ReverseMap();  // Adds a reverse mapping so that ExampleDto can be mapped back to ExampleEntity.
+                .PreserveReferences() // Ensures that object references are preserved during mapping, useful for cyclic references.
+                .ReverseMap(); // Adds a reverse mapping so that ExampleDto can be mapped back to ExampleEntity.
 
             /* Example of mapping profile
             CreateMap<Post, PostDto>()
