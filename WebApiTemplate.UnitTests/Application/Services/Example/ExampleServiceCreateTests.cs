@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Moq;
+using System.Security.Claims;
 using WebApiTemplate.Application.Dtos;
 using WebApiTemplate.Application.Services;
 using WebApiTemplate.Domain.Entities;
@@ -18,8 +19,35 @@ namespace WebApiTemplate.UnitTests.Application.Services.Example
         public ExampleServiceCreateTests(TestFixture fixture)
         {
             _fixture = fixture;
-            // Ensure the HttpContextAccessorMock returns the correct UserId
-            _fixture.HttpContextAccessorMock.Setup(x => x.HttpContext!.User!.Identity!.Name).Returns(UserId);
+            // Define the UserId and other values for the test
+            string userId = UserId; // Assuming UserId is defined in your test
+            string email = "test@example.com";
+            int tenantId = 123;
+            var roles = new List<string> { "Admin", "User" };
+            var permissions = new List<string> { "Read", "Write" };
+
+            // Create a ClaimsPrincipal with the required claims
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, email),
+                new Claim(ClaimTypes.Sid, userId)
+            };
+
+            // Add TenantId claim if needed
+            if (tenantId != 0)
+            {
+                claims.Add(new Claim("tenant_id", tenantId.ToString())); // Replace "tenant_id" with the actual TenantIdClaim constant
+            }
+
+            // Add roles and permissions
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+            claims.AddRange(permissions.Select(permission => new Claim("permission", permission))); // Replace "permission" with the actual Permission constant
+
+            var identity = new ClaimsIdentity(claims, "mock"); // Ensure IsAuthenticated is true
+            var user = new ClaimsPrincipal(identity);
+
+            // Mock HttpContextAccessor to return the ClaimsPrincipal
+            _fixture.HttpContextAccessorMock.Setup(x => x.HttpContext!.User).Returns(user);
             _exampleService = new ExampleService(
                 _fixture.ExampleRepositoryMock.Object,
                 _fixture.HttpContextAccessorMock.Object,
@@ -37,15 +65,35 @@ namespace WebApiTemplate.UnitTests.Application.Services.Example
         }
 
         [Fact]
-        public async Task CreateAsync_ShouldUseUserIdFromHttpContext()
+        public async Task CreateAsync_ShouldUseUserIdFromLoginSession()
         {
             // Arrange
-            ResetMocks();
+            ResetMocks(); // Resets all mocks, including HttpContextAccessorMock
+
+            // Define the expected UserId
+            string userId = "67f2ef2f-b25e-449c-9eb9-2bfb21fd7de6"; // Match the expected UserId
             string id = Guid.NewGuid().ToString();
             var exampleDto = new ExampleDto { Id = id };
-            var exampleEntity = new ExampleEntity { Id = id, UserId = UserId };
+            var exampleEntity = new ExampleEntity { Id = id, UserId = userId };
             var resultDto = new ExampleDto { Id = id };
 
+            // Set up ClaimsPrincipal for GetUserSession
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Sid, userId), // UserId
+                new Claim(ClaimTypes.Name, "test@example.com"), // Email (required to avoid empty UserSession)
+                // Optional: Add other claims if needed
+                new Claim("tenant_id", "123"), // TenantId (adjust claim type if different)
+                new Claim(ClaimTypes.Role, "Admin"), // Example role
+                new Claim("permission", "Read") // Example permission (adjust claim type if different)
+            };
+            var identity = new ClaimsIdentity(claims, "mock"); // Ensure IsAuthenticated is true
+            var user = new ClaimsPrincipal(identity);
+
+            // Set up HttpContextAccessorMock after ResetMocks
+            _fixture.HttpContextAccessorMock.Setup(x => x.HttpContext!.User).Returns(user);
+
+            // Set up other mocks
             ExampleEntity? capturedEntity = null;
 
             _fixture.MapperMock
@@ -67,7 +115,7 @@ namespace WebApiTemplate.UnitTests.Application.Services.Example
             result.Id.Should().Be(id);
             _fixture.ExampleRepositoryMock.Verify(repo => repo.AddWithSaveChangesAndReturnModelAsync(It.IsAny<ExampleEntity>()), Times.Once());
             capturedEntity.Should().NotBeNull();
-            capturedEntity!.UserId.Should().Be(UserId);
+            capturedEntity!.UserId.Should().Be(userId);
         }
 
         [Fact]

@@ -21,7 +21,7 @@ namespace WebApiTemplate.Application.Services
 
             ExampleEntity? entity = _mapper.Map<ExampleEntity?>(request) ?? throw new InvalidOperationException("Mapping resulted in a null entity.");
 
-            entity.UserId = _httpContextAccessor.HttpContext?.User?.Identity?.Name ?? string.Empty;
+            entity.UserId = LoginSession.UserId;
             ExampleEntity? savedEntity = await exampleRepository.AddWithSaveChangesAndReturnModelAsync(entity);
 
             return _mapper.Map<ExampleDto>(savedEntity);
