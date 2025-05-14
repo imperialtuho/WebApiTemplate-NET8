@@ -9,6 +9,7 @@ using WebApiTemplate.Domain.Entities;
 using WebApiTemplate.Domain.Enums;
 using WebApiTemplate.Domain.Exceptions;
 using WebApiTemplate.Domain.Extensions;
+using WebApiTemplate.Domain.Helpers;
 using WebApiTemplate.Domain.SharedKernel;
 
 namespace WebApiTemplate.Infrastructure.Repositories.Providers
@@ -65,6 +66,19 @@ namespace WebApiTemplate.Infrastructure.Repositories.Providers
             _dbContext = Activator.CreateInstance(typeof(C), options) as C ?? throw new InvalidOperationException("Cannot create DbContext");
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
+        }
+
+        /// <summary>
+        /// Asynchronously determines whether any entities match the specified condition.
+        /// </summary>
+        /// <param name="predicate">A lambda expression to test each entity for a condition.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains <c>true</c> if any entities match the condition; otherwise, <c>false</c>.</returns>
+        /// <remarks>
+        /// This method checks the data source without retrieving full entities, making it efficient for existence checks or conditional logic.
+        /// </remarks>
+        public async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _dbContext.Set<T>().AnyAsync(predicate);
         }
 
         /// <summary>
@@ -485,6 +499,35 @@ namespace WebApiTemplate.Infrastructure.Repositories.Providers
             }
 
             return await PaginatedResponse<T>.CreateAsync(query, pageNumber, pageSize);
+        }
+
+        /// <summary>
+        /// Executes a paginated search operation against the database, applying dynamic filters
+        /// based on the provided <see cref="SearchRequest"/>, and returns a <see cref="PaginatedResponse{T}"/> containing the filtered results.
+        /// </summary>
+        /// <param name="request">
+        /// The <see cref="SearchRequest"/> object that contains the filtering criteria, page number, and page size for the search operation.
+        /// </param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains a <see cref="PaginatedResponse{T}"/> object
+        /// with the filtered and paginated list of entities of type <typeparamref name="T"/>.
+        /// </returns>
+        /// <remarks>
+        /// This method supports flexible, runtime-defined filtering and ensures efficient database querying
+        /// by combining filtering and pagination before executing the query.
+        /// </remarks>
+        public async Task<PaginatedResponse<T>> SearchWithPaginatedResponseAsync(SearchRequest request)
+        {
+            // Step 1: Create a list of products
+            IQueryable<T> query = _dbContext.Set<T>().AsQueryable();
+
+            // Step 2: Use the FilterBuilder to apply the filters
+            FilterBuildingHelper<T>? filterBuilder = new(request.Filters ?? []);
+            Func<IQueryable<T>, IQueryable<T>>? filterExpression = filterBuilder.Build();
+            IQueryable<T> filteredProducts = filterExpression(query);
+
+            // Step 3: Apply pagination
+            return await PaginatedResponse<T>.CreateAsync(filteredProducts, request.PageNumber, request.PageSize);
         }
 
         /// <summary>

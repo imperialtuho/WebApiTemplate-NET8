@@ -16,6 +16,16 @@ namespace WebApiTemplate.Application.Interfaces.Repositories
     public interface IEntityFrameworkGenericRepository<T> where T : class
     {
         /// <summary>
+        /// Asynchronously determines whether any entities match the specified condition.
+        /// </summary>
+        /// <param name="predicate">A lambda expression to test each entity for a condition.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains <c>true</c> if any entities match the condition; otherwise, <c>false</c>.</returns>
+        /// <remarks>
+        /// This method checks the data source without retrieving full entities, making it efficient for existence checks or conditional logic.
+        /// </remarks>
+        Task<bool> AnyAsync(Expression<Func<T, bool>> predicate);
+
+        /// <summary>
         /// Asynchronously adds a new entity to the database context.
         /// </summary>
         /// <param name="entity">The entity to add.</param>
@@ -266,5 +276,22 @@ namespace WebApiTemplate.Application.Interfaces.Repositories
             int pageNumber = 1,
             int pageSize = 10,
             Func<IQueryable<T>, IQueryable<T>>? predicate = null);
+
+        /// <summary>
+        /// Executes a paginated search operation against the database, applying dynamic filters
+        /// based on the provided <see cref="SearchRequest"/>, and returns a <see cref="PaginatedResponse{T}"/> containing the filtered results.
+        /// </summary>
+        /// <param name="request">
+        /// The <see cref="SearchRequest"/> object that contains the filtering criteria, page number, and page size for the search operation.
+        /// </param>
+        /// <returns>
+        /// A task that represents the asynchronous operation. The task result contains a <see cref="PaginatedResponse{T}"/> object
+        /// with the filtered and paginated list of entities of type <typeparamref name="T"/>.
+        /// </returns>
+        /// <remarks>
+        /// This method supports flexible, runtime-defined filtering and ensures efficient database querying
+        /// by combining filtering and pagination before executing the query.
+        /// </remarks>
+        Task<PaginatedResponse<T>> SearchWithPaginatedResponseAsync(SearchRequest request);
     }
 }
