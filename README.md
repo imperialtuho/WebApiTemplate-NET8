@@ -14,10 +14,10 @@ The template follows **Clean Architecture**, is **microservice-friendly**, and i
 * Infrastructure
 * Domain
 
-✅ ASP.NET Web API (.NET 8 / 9 / 10 ready)
-✅ Entity Framework Core
-✅ ASP.NET Identity (ready for JWT-based authentication)
-✅ Dependency Injection per layer
+✅ ASP.NET Web API (.NET 8 / 9 / 10 ready)\
+✅ Entity Framework Core\
+✅ ASP.NET Identity (ready for JWT-based authentication)\
+✅ Dependency Injection per layer\
 ✅ Designed for microservices & enterprise systems
 
 ---
