@@ -9,10 +9,10 @@ The template follows **Clean Architecture**, is **microservice-friendly**, and i
 ## ✨ What’s Included
 
 ✅ Clean Architecture structure
-    • API
-    • Application
-    • Infrastructure
-    • Domain
+* API
+* Application
+* Infrastructure
+* Domain
 
 ✅ ASP.NET Web API (.NET 8 / 9 / 10 ready)
 ✅ Entity Framework Core
